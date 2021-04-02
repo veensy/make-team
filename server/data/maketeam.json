@@ -1,0 +1,102 @@
+{
+  "data": {
+    "roles": [
+      {
+        "id": "605dedd58d57320a33bd05cb",
+        "role": "Bass"
+      },
+      {
+        "id": "605dede98d57320a33bd05cc",
+        "role": "Guitar"
+      },
+      {
+        "id": "605dedf28d57320a33bd05cd",
+        "role": "Drum"
+      },
+      {
+        "id": "605dedfc8d57320a33bd05ce",
+        "role": "Keyboard"
+      }
+    ],
+    "isDm": [
+      {
+        "status": "yes",
+        "id": "605e0399a74f3d6b563dd3ae"
+      },
+      {
+        "status": "no",
+        "id": "605e039ea74f3d6b563dd3af"
+      }
+    ],
+    "isAdmin": [
+      {
+        "status": "no",
+        "id": "605e03baa74f3d6b563dd3b0"
+      },
+      {
+        "status": "yes",
+        "id": "605e03bfa74f3d6b563dd3b1"
+      }
+    ],
+    "users": [
+      {
+        "theo": "605e06b17b0b907a3eac36ac"
+      },
+      {
+        "beni": "605e06df7b0b907a3eac36ad"
+      },
+      {
+        "keveens": "605e06f27b0b907a3eac36ae"
+      },
+      {
+        "yoan": "605e07137b0b907a3eac36af"
+      },
+      {
+        "manu": "605e09687b0b907a3eac36b4"
+      },
+      {
+        "kevin": "605e09727b0b907a3eac36b5"
+      },
+      {
+        "daniel": "605e097b7b0b907a3eac36b6"
+      },
+      {
+        "matthieu": "605e09817b0b907a3eac36b7"
+      },
+      {
+        "kimpouni": "605e09987b0b907a3eac36b8"
+      },
+      {
+        "deo": "605e099e7b0b907a3eac36b9"
+      },
+      {
+        "mathurin": "605e09af7b0b907a3eac36ba"
+      },
+      {
+        "paule": "605e09b87b0b907a3eac36bb"
+      },
+      {
+        "hugton": "605e09be7b0b907a3eac36bc"
+      },
+      {
+        "bradley": "605e09c57b0b907a3eac36bd"
+      },
+      {
+        "dimitri": "605e09cd7b0b907a3eac36be"
+      },
+      {
+        "ange": "605e09d27b0b907a3eac36bf"
+      },
+      {
+        "alex": "605e09e77b0b907a3eac36c0"
+      },
+      { "stephane": "605e09ef7b0b907a3eac36c1" },
+      {
+        "stevenson": "605e09f77b0b907a3eac36c2"
+      },
+      {
+        "ismael": "605e09fe7b0b907a3eac36c3"
+      }
+    ]
+  }
+}

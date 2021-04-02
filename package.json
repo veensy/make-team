@@ -1,0 +1,31 @@
+{
+  "name": "main",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "server": "nodemon server/index.js",
+    "start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
+    "client": "cd client && yarn start"
+  },
+  "dependencies": {
+    "concurrently": "^6.0.0",
+    "cors": "^2.8.5",
+    "heroku": "^7.51.0",
+    "nodemon": "^2.0.7",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-graphql": "^0.12.0",
+    "webpack-dev-middleware": "^4.1.0",
+    "@apollo/client": "^3.3.13",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "bootstrap-icons": "^1.4.0",
+    "graphql": "^15.5.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "web-vitals": "^1.0.1"
+  }
+}
