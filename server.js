@@ -31,10 +31,10 @@ app.use('/graphql', expressGraphQL({
   graphiql: true
 }));
 
-app.use(express.static('public'))
+app.use(express.static('build/public'))
 
-app.get('*',(req,res)=>{
-  res.sendFile(path.join,'./build/index.html' )
+app.get('/*',(req,res)=>{
+  res.sendFile(path.join(__dirname,'./build/index.html' ))
 })
 
 module.exports = app;
