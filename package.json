@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "homepage": "https://stark-taiga-80841.herokuapp.com",
   "engines": {
     "node": "14.x"
   },
