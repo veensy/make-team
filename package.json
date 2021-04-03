@@ -8,7 +8,7 @@
     "node": "14.x"
   },
   "scripts": {
-    "server": "node server/index.js",
+    "server": "nodemon server/index.js",
     "start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "client": "PORT=3000 react-scripts start",
     "build": "react-scripts build"
