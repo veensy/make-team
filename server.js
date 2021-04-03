@@ -34,7 +34,7 @@ app.use('/graphql', expressGraphQL({
 app.use(express.static('public'))
 
 app.get('*',(req,res)=>{
-  res.sendFile(__dirname,'public','index.html' )
+  res.sendFile(path.join,'./build/index.html' )
 })
 
 module.exports = app;
