@@ -2,11 +2,12 @@ const express = require('express');
 const cors = require( `cors` );
 const expressGraphQL = require('express-graphql').graphqlHTTP
 const mongoose = require('mongoose');
+const path = require('path');
 const app = express();
-require('dotenv').config({path:__dirname+'/./../../.env'})
+require('dotenv').config()
 
-const models = require('./models');
-const schema = require('./schema/schema');
+const models = require('./server/models');
+const schema = require('./server/schema/schema');
 
 const URI = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.87zfw.gcp.mongodb.net/usermanagement?retryWrites=true&w=majority`;
 if (!URI) {
@@ -29,5 +30,11 @@ app.use('/graphql', expressGraphQL({
   schema,
   graphiql: true
 }));
+
+app.use(express.static('public'))
+
+app.get('*',(req,res)=>{
+  res.sendFile(__dirname,'public','index.html' )
+})
 
 module.exports = app;

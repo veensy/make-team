@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 const client = new ApolloClient({
-  uri: 'http://tpband.fr/graphql',
+  uri: '/graphql',
   cache: new InMemoryCache()
 });
 
