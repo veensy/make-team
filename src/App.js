@@ -1,9 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_USERS, GET_TEAMS_MONTH } from './graphql/queries';
-import { ADD_TEAM, UPDATE_TEAM } from './graphql/mutations';
+import {
+  ADD_TEAM,
+  UPDATE_TEAM,
+  DELETE_TEAM,
+  ADD_USER,
+} from './graphql/mutations';
 import { getSundaysInMonth, changeDate, getStatus, getSelected } from './utils';
-import { MONTH, NEXT, PREV } from './constants';
+import {
+  MONTH,
+  NEXT,
+  PREV,
+  DEL,
+  isMdID,
+  isNotMdID,
+  isAdminID,
+  isNotAdmin,
+  bassID,
+  guitarID,
+  drumID,
+  keyID,
+} from './constants';
 import { ArrowLeft, ArrowRight, LockIcon, UserIcon } from './icons';
 
 const date = new Date();
@@ -24,25 +42,55 @@ function App() {
   const [teamsMonth, setTeamsMonth] = useState([]);
   const [sundaysInMonth, setSundaysInMonth] = useState([]);
   const [valuesToSubmit, setValuesToSubmit] = useState([]);
+  const [newUser, setNewUser] = useState({
+    name: '',
+    roleId: '',
+    isDmId: isNotMdID,
+    isAdminId: isNotAdmin,
+  });
 
   const [addTeam] = useMutation(ADD_TEAM);
   const [updateTeam] = useMutation(UPDATE_TEAM);
+  const [deleteTeamm] = useMutation(DELETE_TEAM);
+  const [addUser] = useMutation(ADD_USER);
 
   const { loading: loadingUsers, data: dataUsers } = useQuery(GET_USERS);
-  const { data: dataTeams } = useQuery(GET_TEAMS_MONTH, {
+  const { data: dataTeams, loading: loadingTeams } = useQuery(GET_TEAMS_MONTH, {
     variables: {
       year: String(year),
       month: String(month),
     },
   });
-  if (sundaysInMonth.length) {
-  }
 
   const handleClick = (step) => {
     const { newMonth, newYear } = changeDate({ step, month, year });
     setMonth(newMonth);
     setYear(newYear);
   };
+
+  const handleNewUser = () => {
+    const { name, roleId, isDmId, isAdminId } = newUser;
+    if (!name || !roleId) {
+      return;
+    }
+    addUser({
+      variables: {
+        name,
+        roleId,
+        isDmId,
+        isAdminId,
+      },
+      refetchQueries: [
+        {
+          query: GET_USERS,
+        },
+        {
+          query: GET_TEAMS_MONTH,
+        },
+      ],
+    });
+  };
+
   useEffect(() => {
     if (dataUsers && dataTeams) {
       const { md, bass, guitar, keyboard, drum } = getStatus(dataUsers.users);
@@ -52,26 +100,30 @@ function App() {
       setKeyboard(keyboard);
       setDrum(drum);
       setTeamsMonth(dataTeams);
-      let newValues = [];
-      if (sundaysInMonth.length && dataTeams) {
-        sundaysInMonth.forEach((sunday, idx) => {
-          if (dataTeams.team[idx]?.id) {
-            newValues.push({ id: dataTeams.team[idx]?.id });
-            setValuesToSubmit(newValues);
-          } else {
-            addTeam({
-              variables: {
-                year: String(year),
-                month: String(month),
-                sunday: String(sunday),
-              },
-            });
-          }
-        });
-      }
+
+      setSundaysInMonth(getSundaysInMonth(month, year));
     }
-    setSundaysInMonth(getSundaysInMonth(month, year));
   }, [dataUsers, month, year, dataTeams, addTeam]);
+
+  useEffect(() => {
+    let newValues = [];
+    if (sundaysInMonth.length && dataTeams) {
+      sundaysInMonth.forEach((sunday, idx) => {
+        if (dataTeams.team[idx]?.id) {
+          newValues.push({ id: dataTeams.team[idx]?.id });
+          setValuesToSubmit(newValues);
+        } else {
+          addTeam({
+            variables: {
+              year: String(year),
+              month: String(month),
+              sunday: String(sunday),
+            },
+          });
+        }
+      });
+    }
+  }, []);
 
   const handleChange = (e, field, id) => {
     if (!valuesToSubmit.length) {
@@ -144,9 +196,9 @@ function App() {
 
   if (
     loadingUsers ||
+    loadingTeams ||
     !sundaysInMonth.length ||
-    !teamsMonth.team ||
-    teamsMonth.team.length <= 0
+    !teamsMonth.team
   ) {
     return (
       <div className='d-flex justify-content-center align-items-center m-5'>
@@ -159,9 +211,9 @@ function App() {
 
   const inputUserClass = `form-control ${isValidUserValue ? '' : 'is-invalid'}`;
   const inputPassClass = `form-control ${isValidPassValue ? '' : 'is-invalid'}`;
-  
+
   return (
-    <div className='px-2'>
+    <div className='p-3'>
       <nav className='navbar navbar-light bg-light'>
         <div className='container-fluid'>
           <span className='navbar-brand mb-0 h1'>Sunday team</span>
@@ -448,6 +500,76 @@ function App() {
             })}
           </tbody>
         </table>
+        {isAdmin && (
+          <div className='form-floating mb-3  col-md-6  d-flex align-items-center mt-5'>
+            <input
+              type='text'
+              className='form-control'
+              id='floatingInput'
+              placeholder='add a menbers'
+              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+            />
+            <label htmlFor='floatingInput'>Add a menber</label>
+            <select
+              className='form-select py-0 mx-2'
+              aria-label='Default select example'
+              onChange={(e) => setNewUser({ ...newUser, roleId: e.target.value })}
+            >
+              <option value=''>Role</option>
+              <option value={keyID}>keyboard</option>
+              <option value={bassID}>bass</option>
+              <option value={drumID}>drum</option>
+              <option value={guitarID}>guitar</option>
+            </select>
+            <div className='form-check'>
+              <input
+                className='form-check-input'
+                type='checkbox'
+                value=''
+                id='flexCheckDefault'
+                onChange={(e) =>
+                  setNewUser({
+                    ...newUser,
+                    isDmId: e.target.checked ? isMdID : isNotMdID,
+                  })
+                }
+              />
+              <label
+                className='form-check-label text-nowrap'
+                htmlFor='flexCheckDefault'
+              >
+                Is Md
+              </label>
+            </div>
+            <div className='form-check ms-2'>
+              <input
+                className='form-check-input '
+                type='checkbox'
+                value=''
+                id='flexCheckDefault'
+                onChange={(e) =>
+                  setNewUser({
+                    ...newUser,
+                    isAdminId: e.target.checked ? isAdminID : isNotAdmin,
+                  })
+                }
+              />
+              <label
+                className='form-check-label text-nowrap'
+                htmlFor='flexCheckDefault'
+              >
+                Is Admin
+              </label>
+            </div>
+            <button
+              onClick={handleNewUser}
+              type='button'
+              className='btn btn-outline-primary ms-2'
+            >
+              save
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
