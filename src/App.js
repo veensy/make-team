@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_USERS, GET_TEAMS_MONTH } from './graphql/queries';
 import { ADD_TEAM, UPDATE_TEAM } from './graphql/mutations';
-import { getSundaysInMonth, changeDate, getStatus } from './utils';
+import { getSundaysInMonth, changeDate, getStatus, getSelected } from './utils';
 import { MONTH, NEXT, PREV } from './constants';
 import { ArrowLeft, ArrowRight, LockIcon, UserIcon } from './icons';
 
@@ -42,9 +42,8 @@ function App() {
     const { newMonth, newYear } = changeDate({ step, month, year });
     setMonth(newMonth);
     setYear(newYear);
-
   };
-  useEffect(() => {   
+  useEffect(() => {
     if (dataUsers && dataTeams) {
       const { md, bass, guitar, keyboard, drum } = getStatus(dataUsers.users);
       setMd(md);
@@ -129,9 +128,11 @@ function App() {
   const handleAdmin = (e) => {
     setAdminValue(e.target.value);
   };
+
   const handlePassword = (e) => {
     setPassValue(e.target.value);
   };
+
   const handleLogout = (e) => {
     e.preventDefault();
     setAdminValue('');
@@ -141,7 +142,12 @@ function App() {
     setIsAdmin(false);
   };
 
-  if (loadingUsers || !sundaysInMonth.length || !teamsMonth.team || teamsMonth.length < 0 ) {
+  if (
+    loadingUsers ||
+    !sundaysInMonth.length ||
+    !teamsMonth.team ||
+    teamsMonth.team.length <= 0
+  ) {
     return (
       <div className='d-flex justify-content-center align-items-center m-5'>
         <div className='spinner-border' role='status'>
@@ -150,8 +156,10 @@ function App() {
       </div>
     );
   }
+
   const inputUserClass = `form-control ${isValidUserValue ? '' : 'is-invalid'}`;
   const inputPassClass = `form-control ${isValidPassValue ? '' : 'is-invalid'}`;
+  
   return (
     <div className='px-2'>
       <nav className='navbar navbar-light bg-light'>
@@ -255,15 +263,32 @@ function App() {
           </thead>
           <tbody>
             {sundaysInMonth.map((sunday, idx) => {
-              const {
-                id,
-                sunday: sundayTeam,
-                md: mdTeam,
-                bass: bassTeam,
-                guitar: guitarTeam,
-                keyboard: keyboardTeam,
-                drum: drumTeam,
-              } = teamsMonth.team[idx];
+              const selectedMd = getSelected(
+                teamsMonth.team,
+                String(sunday),
+                'md'
+              );
+              const selectedKey = getSelected(
+                teamsMonth.team,
+                String(sunday),
+                'keyboard'
+              );
+              const selectedBass = getSelected(
+                teamsMonth.team,
+                String(sunday),
+                'bass'
+              );
+              const selectedDrum = getSelected(
+                teamsMonth.team,
+                String(sunday),
+                'drum'
+              );
+              const selectedGuitar = getSelected(
+                teamsMonth.team,
+                String(sunday),
+                'guitar'
+              );
+
               return (
                 <tr key={sunday} className=''>
                   <th scope='row align-middle'>{`${sunday} ${MONTH[month]}`}</th>
@@ -276,16 +301,9 @@ function App() {
                       >
                         <option />
                         {md.map((name) => {
-                          const mdName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return mdTeam;
-                              }
-                            }
-                          };
                           return (
                             <option
-                              selected={name === mdName()}
+                              selected={name === selectedMd}
                               key={name}
                               value={name}
                             >
@@ -297,14 +315,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {md.filter((name) => {
-                          const mdName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return mdTeam;
-                              }
-                            }
-                          };
-                          return name === mdName();
+                          return name === selectedMd;
                         })}
                       </p>
                     )}
@@ -318,16 +329,9 @@ function App() {
                       >
                         <option />
                         {keyboard.map((name) => {
-                          const keyName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return keyboardTeam;
-                              }
-                            }
-                          };
                           return (
                             <option
-                              selected={name === keyName()}
+                              selected={name === selectedKey}
                               key={name}
                               value={name}
                             >
@@ -339,14 +343,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {keyboard.filter((name) => {
-                          const keyName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return keyboardTeam;
-                              }
-                            }
-                          };
-                          return name === keyName();
+                          return name === selectedKey;
                         })}
                       </p>
                     )}
@@ -360,16 +357,9 @@ function App() {
                       >
                         <option />
                         {bass.map((name) => {
-                          const bassName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return bassTeam;
-                              }
-                            }
-                          };
                           return (
                             <option
-                              selected={name === bassName()}
+                              selected={name === selectedBass}
                               key={name}
                               value={name}
                             >
@@ -381,14 +371,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {bass.filter((name) => {
-                          const bassName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return bassTeam;
-                              }
-                            }
-                          };
-                          return name === bassName();
+                          return name === selectedBass;
                         })}
                       </p>
                     )}
@@ -402,16 +385,9 @@ function App() {
                       >
                         <option />
                         {drum.map((name) => {
-                          const drumName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return drumTeam;
-                              }
-                            }
-                          };
                           return (
                             <option
-                              selected={name === drumName()}
+                              selected={name === selectedDrum}
                               key={name}
                               value={name}
                             >
@@ -423,14 +399,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {drum.filter((name) => {
-                          const drumName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return drumTeam;
-                              }
-                            }
-                          };
-                          return name === drumName();
+                          return name === selectedDrum;
                         })}
                       </p>
                     )}
@@ -444,16 +413,9 @@ function App() {
                       >
                         <option />
                         {guitar.map((name) => {
-                          const guitarName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return guitarTeam;
-                              }
-                            }
-                          };
                           return (
                             <option
-                              selected={name === guitarName()}
+                              selected={name === selectedGuitar}
                               key={name}
                               value={name}
                             >
@@ -465,14 +427,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {guitar.filter((name) => {
-                          const guitarName = () => {
-                            if (teamsMonth.team[idx]) {
-                              if (sundayTeam === String(sunday)) {
-                                return guitarTeam;
-                              }
-                            }
-                          };
-                          return name === guitarName();
+                          return name === selectedGuitar;
                         })}
                       </p>
                     )}
