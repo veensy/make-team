@@ -6,7 +6,19 @@ import reportWebVitals from './reportWebVitals';
 
 const client = new ApolloClient({
   uri: '/graphql',
-  cache: new InMemoryCache()
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          project: {
+            merge: true,
+          }
+        }
+      }
+    }
+  }
+    
+  )
 });
 
 ReactDOM.render(

@@ -7,6 +7,7 @@ export const GET_USERS = gql`
       name
       role {
         role
+        id
       }
       isDm {
         status

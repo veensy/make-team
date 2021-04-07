@@ -1,28 +1,25 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import { GET_USERS, GET_TEAMS_MONTH } from './graphql/queries';
 import {
   ADD_TEAM,
   UPDATE_TEAM,
   DELETE_TEAM,
   ADD_USER,
+  UPDATE_USER,
+  DELETE_USER,
 } from './graphql/mutations';
 import { getSundaysInMonth, changeDate, getStatus, getSelected } from './utils';
+import { MONTH, NEXT, PREV } from './constants';
 import {
-  MONTH,
-  NEXT,
-  PREV,
-  DEL,
-  isMdID,
-  isNotMdID,
-  isAdminID,
-  isNotAdmin,
-  bassID,
-  guitarID,
-  drumID,
-  keyID,
-} from './constants';
-import { ArrowLeft, ArrowRight, LockIcon, UserIcon } from './icons';
+  ArrowLeft,
+  ArrowRight,
+  LockIcon,
+  UserIcon,
+  InfoIcon,
+  WarningIcon,
+} from './icons';
+import { AddUser, UpdateUser, DeleteUser } from './components';
 
 const date = new Date();
 
@@ -42,39 +39,180 @@ function App() {
   const [teamsMonth, setTeamsMonth] = useState([]);
   const [sundaysInMonth, setSundaysInMonth] = useState([]);
   const [valuesToSubmit, setValuesToSubmit] = useState([]);
-  const [newUser, setNewUser] = useState({
-    name: '',
-    roleId: '',
-    isDmId: isNotMdID,
-    isAdminId: isNotAdmin,
+  const [displayToast, setDisplayToast] = useState('hide');
+  const [message, setMessage] = useState('');
+  const [messageTitle, setMessageTitle] = useState('');
+  const [toastIcon, setToastIcon] = useState(<></>);
+  const [toastColor, setToastColor] = useState('');
+
+  const [addTeam] = useMutation(ADD_TEAM, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+      {
+        query: GET_TEAMS_MONTH,
+        variables: {
+          year: String(year),
+          month: String(month),
+        },
+      },
+    ],
+    awaitRefetchQueries: true,
+  });
+  const [updateTeam, { error: errorUpdateTeam }] = useMutation(UPDATE_TEAM, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+      {
+        query: GET_TEAMS_MONTH,
+        variables: {
+          year: String(year),
+          month: String(month),
+        },
+      },
+    ],
+    awaitRefetchQueries: true,
+  });
+  const [deleteTeamm] = useMutation(DELETE_TEAM, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+      {
+        query: GET_TEAMS_MONTH,
+        variables: {
+          year: String(year),
+          month: String(month),
+        },
+      },
+    ],
+    awaitRefetchQueries: true,
+  });
+  const [addUser, { error: errorAddUser }] = useMutation(ADD_USER, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+      {
+        query: GET_TEAMS_MONTH,
+        variables: {
+          year: String(year),
+          month: String(month),
+        },
+      },
+    ],
+    awaitRefetchQueries: true,
+  });
+  const [updateUser] = useMutation(UPDATE_USER, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+      {
+        query: GET_TEAMS_MONTH,
+        variables: {
+          year: String(year),
+          month: String(month),
+        },
+      },
+    ],
+    awaitRefetchQueries: true,
+  });
+  const [deleteUser] = useMutation(DELETE_USER, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+      {
+        query: GET_TEAMS_MONTH,
+        variables: {
+          year: String(year),
+          month: String(month),
+        },
+      },
+    ],
+    awaitRefetchQueries: true,
   });
 
-  const [addTeam] = useMutation(ADD_TEAM);
-  const [updateTeam] = useMutation(UPDATE_TEAM);
-  const [deleteTeamm] = useMutation(DELETE_TEAM);
-  const [addUser] = useMutation(ADD_USER);
-
-  const { loading: loadingUsers, data: dataUsers } = useQuery(GET_USERS);
-  const { data: dataTeams, loading: loadingTeams } = useQuery(GET_TEAMS_MONTH, {
-    variables: {
-      year: String(year),
-      month: String(month),
-    },
-  });
-
+  const { loading: loadingUsers, data: dataUsers, error: errorUser } = useQuery(
+    GET_USERS
+  );
+  const { data: dataTeams, loading: loadingTeams, error: errorTeam } = useQuery(
+    GET_TEAMS_MONTH,
+    {
+      variables: {
+        year: String(year),
+        month: String(month),
+      },
+    }
+  );
   const handleClick = (step) => {
     const { newMonth, newYear } = changeDate({ step, month, year });
     setMonth(newMonth);
     setYear(newYear);
   };
 
-  const handleNewUser = () => {
+  const handleNewUser = (newUser) => {
     const { name, roleId, isDmId, isAdminId } = newUser;
     if (!name || !roleId) {
+      setDisplayToast('show');
+      setMessage(`name or role missing`);
+      setMessageTitle('Empty field');
+      setToastIcon(<WarningIcon />);
+      setToastColor('bg-warning');
+      return;
+    } else {
+      addUser({
+        variables: {
+          name,
+          roleId,
+          isDmId,
+          isAdminId,
+        },
+        refetchQueries: [
+          {
+            query: GET_USERS,
+          },
+          {
+            query: GET_TEAMS_MONTH,
+            variables: {
+              year: String(year),
+              month: String(month),
+            },
+          },
+        ],
+      });
+      setDisplayToast('show');
+      setMessage(`${name} has been added as new menbers`);
+      setMessageTitle('New User');
+      setToastIcon(<InfoIcon />);
+      setToastColor('bg-success');
+      if (errorAddUser) {
+        setDisplayToast('show');
+        setMessage(`adding user failed`);
+        setMessageTitle('Error');
+        setToastIcon(<InfoIcon />);
+        setToastColor('bg-danger');
+        return;
+      }
+    }
+  };
+
+  const handleUpdateUser = (mofifiedUser) => {
+    const { id, name, roleId, isDmId, isAdminId } = mofifiedUser;
+    if (!id || !name || !roleId) {
+      setDisplayToast('show');
+      setMessage(`name or role missing`);
+      setMessageTitle('Empty field');
+      setToastIcon(<WarningIcon />);
+      setToastColor('bg-warning');
       return;
     }
-    addUser({
+    updateUser({
       variables: {
+        id,
         name,
         roleId,
         isDmId,
@@ -86,12 +224,54 @@ function App() {
         },
         {
           query: GET_TEAMS_MONTH,
+          variables: {
+            year: String(year),
+            month: String(month),
+          },
         },
       ],
     });
+    setDisplayToast('show');
+    setMessage(`${name}'s profil has been updated`);
+    setMessageTitle('Update User');
+    setToastIcon(<InfoIcon />);
+    setToastColor('bg-success');
+  };
+  const handleDeleteUser = (deleteUserId) => {
+    if (!deleteUserId) {
+      setDisplayToast('show');
+      setMessage(`id missing`);
+      setMessageTitle('Can not find a ID');
+      setToastIcon(<WarningIcon />);
+      setToastColor('bg-warning');
+      return;
+    }
+    deleteUser({
+      variables: {
+        id: deleteUserId,
+      },
+      refetchQueries: [
+        {
+          query: GET_USERS,
+        },
+        {
+          query: GET_TEAMS_MONTH,
+          variables: {
+            year: String(year),
+            month: String(month),
+          },
+        },
+      ],
+    });
+    setDisplayToast('show');
+    setMessage(`profil deleted`);
+    setMessageTitle('Delete User');
+    setToastIcon(<InfoIcon />);
+    setToastColor('bg-success');
   };
 
   useEffect(() => {
+    setSundaysInMonth(getSundaysInMonth(month, year));
     if (dataUsers && dataTeams) {
       const { md, bass, guitar, keyboard, drum } = getStatus(dataUsers.users);
       setMd(md);
@@ -100,14 +280,9 @@ function App() {
       setKeyboard(keyboard);
       setDrum(drum);
       setTeamsMonth(dataTeams);
-
-      setSundaysInMonth(getSundaysInMonth(month, year));
     }
-  }, [dataUsers, month, year, dataTeams, addTeam]);
-
-  useEffect(() => {
     let newValues = [];
-    if (sundaysInMonth.length && dataTeams) {
+    if (sundaysInMonth.length && dataTeams && !valuesToSubmit.length) {
       sundaysInMonth.forEach((sunday, idx) => {
         if (dataTeams.team[idx]?.id) {
           newValues.push({ id: dataTeams.team[idx]?.id });
@@ -123,13 +298,11 @@ function App() {
         }
       });
     }
-  }, []);
+  }, [dataUsers, month, year, dataTeams, addTeam]);
 
   const handleChange = (e, field, id) => {
-    if (!valuesToSubmit.length) {
-      return;
-    }
     const name = e.target.value;
+
     valuesToSubmit.forEach((value, idx) => {
       if (value.id === id) {
         valuesToSubmit[idx] = { ...valuesToSubmit[idx], [field]: name };
@@ -137,29 +310,34 @@ function App() {
     });
   };
 
-  const saveTeam = (id) => {
+  const saveTeam = (team) => {
     valuesToSubmit.forEach((value, idx) => {
-      if (value.id === id) {
+      if (value.id === team.id) {
         const { md, keyboard, bass, drum, guitar } = valuesToSubmit[idx];
         updateTeam({
           variables: {
-            id,
+            id: team.id,
             md,
             keyboard,
             bass,
             drum,
             guitar,
           },
-          refetchQueries: [
-            {
-              query: GET_TEAMS_MONTH,
-              variables: {
-                year: String(year),
-                month: String(month),
-              },
-            },
-          ],
         });
+
+        if (errorUpdateTeam) {
+          setDisplayToast('show');
+          setMessage(`adding user failed`);
+          setMessageTitle('Error');
+          setToastIcon(<InfoIcon />);
+          setToastColor('bg-danger');
+        } else {
+          setDisplayToast('show');
+          setMessage(`a new player has been added to the team`);
+          setMessageTitle('New User');
+          setToastIcon(<InfoIcon />);
+          setToastColor('bg-success');
+        }
       }
     });
   };
@@ -349,13 +527,15 @@ function App() {
                       <select
                         className='form-select'
                         aria-label='Default select example'
-                        onChange={(e) => handleChange(e, 'md', id)}
+                        onChange={(e) =>
+                          handleChange(e, 'md', teamsMonth.team[idx].id)
+                        }
                       >
                         <option />
                         {md.map((name) => {
                           return (
                             <option
-                              selected={name === selectedMd}
+                              selected={name === selectedMd?.name}
                               key={name}
                               value={name}
                             >
@@ -367,7 +547,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {md.filter((name) => {
-                          return name === selectedMd;
+                          return name === selectedMd?.name;
                         })}
                       </p>
                     )}
@@ -377,13 +557,15 @@ function App() {
                       <select
                         className='form-select'
                         aria-label='Default select example'
-                        onChange={(e) => handleChange(e, 'keyboard', id)}
+                        onChange={(e) =>
+                          handleChange(e, 'keyboard', teamsMonth.team[idx].id)
+                        }
                       >
                         <option />
                         {keyboard.map((name) => {
                           return (
                             <option
-                              selected={name === selectedKey}
+                              selected={name === selectedKey?.name}
                               key={name}
                               value={name}
                             >
@@ -395,7 +577,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {keyboard.filter((name) => {
-                          return name === selectedKey;
+                          return name === selectedKey?.name;
                         })}
                       </p>
                     )}
@@ -405,13 +587,15 @@ function App() {
                       <select
                         className='form-select'
                         aria-label='Default select example'
-                        onChange={(e) => handleChange(e, 'bass', id)}
+                        onChange={(e) =>
+                          handleChange(e, 'bass', teamsMonth.team[idx].id)
+                        }
                       >
                         <option />
                         {bass.map((name) => {
                           return (
                             <option
-                              selected={name === selectedBass}
+                              selected={name === selectedBass?.name}
                               key={name}
                               value={name}
                             >
@@ -423,7 +607,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {bass.filter((name) => {
-                          return name === selectedBass;
+                          return name === selectedBass?.name;
                         })}
                       </p>
                     )}
@@ -433,13 +617,15 @@ function App() {
                       <select
                         className='form-select'
                         aria-label='Default select example'
-                        onChange={(e) => handleChange(e, 'drum', id)}
+                        onChange={(e) =>
+                          handleChange(e, 'drum', teamsMonth.team[idx].id)
+                        }
                       >
                         <option />
                         {drum.map((name) => {
                           return (
                             <option
-                              selected={name === selectedDrum}
+                              selected={name === selectedDrum?.name}
                               key={name}
                               value={name}
                             >
@@ -451,7 +637,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {drum.filter((name) => {
-                          return name === selectedDrum;
+                          return name === selectedDrum?.name;
                         })}
                       </p>
                     )}
@@ -461,13 +647,15 @@ function App() {
                       <select
                         className='form-select'
                         aria-label='Default select example'
-                        onChange={(e) => handleChange(e, 'guitar', id)}
+                        onChange={(e) =>
+                          handleChange(e, 'guitar', teamsMonth.team[idx].id)
+                        }
                       >
                         <option />
                         {guitar.map((name) => {
                           return (
                             <option
-                              selected={name === selectedGuitar}
+                              selected={name === selectedGuitar?.name}
                               key={name}
                               value={name}
                             >
@@ -479,7 +667,7 @@ function App() {
                     ) : (
                       <p className='m-0'>
                         {guitar.filter((name) => {
-                          return name === selectedGuitar;
+                          return name === selectedGuitar?.name;
                         })}
                       </p>
                     )}
@@ -487,7 +675,7 @@ function App() {
                   {isAdmin && (
                     <td>
                       <button
-                        onClick={() => saveTeam(id, teamsMonth.team[idx])}
+                        onClick={() => saveTeam(teamsMonth.team[idx])}
                         type='button'
                         className='btn btn-outline-primary'
                       >
@@ -501,76 +689,46 @@ function App() {
           </tbody>
         </table>
         {isAdmin && (
-          <div className='form-floating mb-3  col-md-6  d-flex align-items-center mt-5'>
-            <input
-              type='text'
-              className='form-control'
-              id='floatingInput'
-              placeholder='add a menbers'
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+          <div className='d-flex justify-content-around mt-5'>
+            <AddUser handleNewUser={handleNewUser} />
+            <UpdateUser
+              users={dataUsers.users}
+              handleUpdateUser={handleUpdateUser}
             />
-            <label htmlFor='floatingInput'>Add a menber</label>
-            <select
-              className='form-select py-0 mx-2'
-              aria-label='Default select example'
-              onChange={(e) => setNewUser({ ...newUser, roleId: e.target.value })}
-            >
-              <option value=''>Role</option>
-              <option value={keyID}>keyboard</option>
-              <option value={bassID}>bass</option>
-              <option value={drumID}>drum</option>
-              <option value={guitarID}>guitar</option>
-            </select>
-            <div className='form-check'>
-              <input
-                className='form-check-input'
-                type='checkbox'
-                value=''
-                id='flexCheckDefault'
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    isDmId: e.target.checked ? isMdID : isNotMdID,
-                  })
-                }
-              />
-              <label
-                className='form-check-label text-nowrap'
-                htmlFor='flexCheckDefault'
-              >
-                Is Md
-              </label>
-            </div>
-            <div className='form-check ms-2'>
-              <input
-                className='form-check-input '
-                type='checkbox'
-                value=''
-                id='flexCheckDefault'
-                onChange={(e) =>
-                  setNewUser({
-                    ...newUser,
-                    isAdminId: e.target.checked ? isAdminID : isNotAdmin,
-                  })
-                }
-              />
-              <label
-                className='form-check-label text-nowrap'
-                htmlFor='flexCheckDefault'
-              >
-                Is Admin
-              </label>
-            </div>
-            <button
-              onClick={handleNewUser}
-              type='button'
-              className='btn btn-outline-primary ms-2'
-            >
-              save
-            </button>
+            <DeleteUser
+              users={dataUsers.users}
+              handleDeleteUser={handleDeleteUser}
+            />
           </div>
         )}
       </main>
+      <>
+        <div
+          className='position-fixed bottom-0 end-0 p-3'
+          style={{ zIndex: 5 }}
+        >
+          <div
+            id='liveToast'
+            className={`toast ${displayToast} `}
+            role='alert'
+            aria-live='assertive'
+            aria-atomic='true'
+          >
+            <div className={`toast-header ${toastColor} text-white`}>
+              <div className='me-2'>{toastIcon}</div>
+              <strong className='me-auto'>{messageTitle}</strong>
+              <button
+                type='button'
+                className='btn-close btn-close-white'
+                data-bs-dismiss='toast'
+                aria-label='Close'
+                onClick={() => setDisplayToast('hide')}
+              ></button>
+            </div>
+            <div className='toast-body'>{message}</div>
+          </div>
+        </div>
+      </>
     </div>
   );
 }

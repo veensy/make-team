@@ -26,7 +26,7 @@ export const isMdID = '605e0399a74f3d6b563dd3ae';
 export const isNotMdID = '605e039ea74f3d6b563dd3af';
 
 export const isAdminID = '605e03bfa74f3d6b563dd3b1';
-export const isNotAdmin = '605e03baa74f3d6b563dd3b0';
+export const isNotAdminID = '605e03baa74f3d6b563dd3b0';
 
 export const bassID = '605dedd58d57320a33bd05cb';
 export const guitarID = '605dede98d57320a33bd05cc';
