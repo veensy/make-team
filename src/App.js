@@ -444,7 +444,7 @@ function App() {
             <Lists teamsMonth={teamsMonth.team} year={year} month={month} />
           </>
         )}
-        {teamsMonth.team && !isAdmin && (
+        {teamsMonth.team && isAdmin && (
           <EditList
             teamsMonth={teamsMonth.team}
             callToast={callToast}
