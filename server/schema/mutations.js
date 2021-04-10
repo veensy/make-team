@@ -1,12 +1,13 @@
 const graphql = require('graphql');
 const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLNonNull } = graphql;
-const { User, Role, Team, IsAdmin, IsDm, Date } = require('./types/types');
+const { User, Role, Team, IsAdmin, IsDm, Date,List } = require('./types/types');
 const Users = require('../models/user');
 const Roles = require('../models/role');
 const Teams = require('../models/team');
 const AreAdmin = require('../models/isAdmin');
 const AreDm = require('../models/isDm');
 const Dates = require('../models/date');
+const Lists = require('../models/list')
 
 const mutation = new GraphQLObjectType({
   name: 'Mutation',
@@ -48,6 +49,28 @@ const mutation = new GraphQLObjectType({
           guitar,
           keyboard,
           drum,
+        }).save();
+      },
+    },
+    addList: {
+      type: List,
+      args: {
+        year: { type: new GraphQLNonNull(GraphQLString) },
+        month: { type: new GraphQLNonNull(GraphQLString) },
+        sunday: { type: new GraphQLNonNull(GraphQLString) },
+        title: { type: GraphQLString },
+        link: { type: GraphQLString },
+      },
+      resolve(
+        parentValue,
+        { year, month, sunday, title, link }
+      ) {
+        return new Lists({
+          year,
+          month,
+          sunday,
+          title,
+          link,
         }).save();
       },
     },
@@ -112,6 +135,21 @@ const mutation = new GraphQLObjectType({
         );
       },
     },
+    updateList: {
+      type: List,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+        title: { type: GraphQLString },
+        link: { type: GraphQLString },
+      },
+      resolve(parentValue, { id, title, link }) {
+        return Lists.findByIdAndUpdate(
+          id,
+          { title, link},
+          { omitUndefined: true }
+        );
+      },
+    },
     deleteTeam: {
       type: Team,
       args: {
@@ -119,6 +157,15 @@ const mutation = new GraphQLObjectType({
       },
       resolve(parentValue, {  id }) {
         return Teams.findByIdAndDelete( id);
+      },
+    },
+    deleteList: {
+      type: List,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve(parentValue, {  id }) {
+        return Lists.findByIdAndDelete( id);
       },
     },
     deleteUser: {

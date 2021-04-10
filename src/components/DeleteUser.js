@@ -22,7 +22,7 @@ export const DeleteUser = ({ users, handleDeleteUser }) => {
           ))}
         </select>
       </div>
-      <div class='card-footer'>
+      <div className='card-footer'>
         <button
           onClick={() => handleDeleteUser(deleteUser)}
           type='button'

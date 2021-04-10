@@ -1,25 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { GET_USERS, GET_TEAMS_MONTH } from './graphql/queries';
-import {
-  ADD_TEAM,
-  UPDATE_TEAM,
-  DELETE_TEAM,
-  ADD_USER,
-  UPDATE_USER,
-  DELETE_USER,
-} from './graphql/mutations';
+import { ADD_TEAM, UPDATE_TEAM, DELETE_TEAM } from './graphql/mutations';
 import { getSundaysInMonth, changeDate, getStatus, getSelected } from './utils';
 import { MONTH, NEXT, PREV } from './constants';
-import {
-  ArrowLeft,
-  ArrowRight,
-  LockIcon,
-  UserIcon,
-  InfoIcon,
-  WarningIcon,
-} from './icons';
-import { AddUser, UpdateUser, DeleteUser } from './components';
+import { ArrowLeft, ArrowRight, InfoIcon, WarningIcon } from './icons';
+import { SetList, Login, EditUser, Lists, EditList } from './components';
 
 const date = new Date();
 
@@ -28,10 +14,6 @@ function App() {
   const [year, setYear] = useState(date.getFullYear());
   const [md, setMd] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [adminValue, setAdminValue] = useState('');
-  const [isValidUserValue, setIsValidUserValue] = useState(true);
-  const [isValidPassValue, setIsValidPassValue] = useState(true);
-  const [passValue, setPassValue] = useState('');
   const [bass, setBass] = useState([]);
   const [guitar, setGuitar] = useState([]);
   const [keyboard, setKeyboard] = useState([]);
@@ -90,184 +72,36 @@ function App() {
     ],
     awaitRefetchQueries: true,
   });
-  const [addUser, { error: errorAddUser }] = useMutation(ADD_USER, {
-    refetchQueries: [
-      {
-        query: GET_USERS,
-      },
-      {
-        query: GET_TEAMS_MONTH,
-        variables: {
-          year: String(year),
-          month: String(month),
-        },
-      },
-    ],
-    awaitRefetchQueries: true,
-  });
-  const [updateUser] = useMutation(UPDATE_USER, {
-    refetchQueries: [
-      {
-        query: GET_USERS,
-      },
-      {
-        query: GET_TEAMS_MONTH,
-        variables: {
-          year: String(year),
-          month: String(month),
-        },
-      },
-    ],
-    awaitRefetchQueries: true,
-  });
-  const [deleteUser] = useMutation(DELETE_USER, {
-    refetchQueries: [
-      {
-        query: GET_USERS,
-      },
-      {
-        query: GET_TEAMS_MONTH,
-        variables: {
-          year: String(year),
-          month: String(month),
-        },
-      },
-    ],
-    awaitRefetchQueries: true,
-  });
 
-  const { loading: loadingUsers, data: dataUsers, error: errorUser } = useQuery(
-    GET_USERS
-  );
-  const { data: dataTeams, loading: loadingTeams, error: errorTeam } = useQuery(
-    GET_TEAMS_MONTH,
-    {
-      variables: {
-        year: String(year),
-        month: String(month),
-      },
-    }
-  );
+  const {
+    loading: loadingUsers,
+    data: dataUsers,
+    error: errorUser,
+    refetch: refetchUsers,
+  } = useQuery(GET_USERS);
+  const {
+    data: dataTeams,
+    loading: loadingTeams,
+    error: errorTeam,
+    refetch: refetchTeams,
+  } = useQuery(GET_TEAMS_MONTH, {
+    variables: {
+      year: String(year),
+      month: String(month),
+    },
+  });
   const handleClick = (step) => {
     const { newMonth, newYear } = changeDate({ step, month, year });
     setMonth(newMonth);
     setYear(newYear);
   };
 
-  const handleNewUser = (newUser) => {
-    const { name, roleId, isDmId, isAdminId } = newUser;
-    if (!name || !roleId) {
-      setDisplayToast('show');
-      setMessage(`name or role missing`);
-      setMessageTitle('Empty field');
-      setToastIcon(<WarningIcon />);
-      setToastColor('bg-warning');
-      return;
-    } else {
-      addUser({
-        variables: {
-          name,
-          roleId,
-          isDmId,
-          isAdminId,
-        },
-        refetchQueries: [
-          {
-            query: GET_USERS,
-          },
-          {
-            query: GET_TEAMS_MONTH,
-            variables: {
-              year: String(year),
-              month: String(month),
-            },
-          },
-        ],
-      });
-      setDisplayToast('show');
-      setMessage(`${name} has been added as new menbers`);
-      setMessageTitle('New User');
-      setToastIcon(<InfoIcon />);
-      setToastColor('bg-success');
-      if (errorAddUser) {
-        setDisplayToast('show');
-        setMessage(`adding user failed`);
-        setMessageTitle('Error');
-        setToastIcon(<InfoIcon />);
-        setToastColor('bg-danger');
-        return;
-      }
-    }
-  };
-
-  const handleUpdateUser = (mofifiedUser) => {
-    const { id, name, roleId, isDmId, isAdminId } = mofifiedUser;
-    if (!id || !name || !roleId) {
-      setDisplayToast('show');
-      setMessage(`name or role missing`);
-      setMessageTitle('Empty field');
-      setToastIcon(<WarningIcon />);
-      setToastColor('bg-warning');
-      return;
-    }
-    updateUser({
-      variables: {
-        id,
-        name,
-        roleId,
-        isDmId,
-        isAdminId,
-      },
-      refetchQueries: [
-        {
-          query: GET_USERS,
-        },
-        {
-          query: GET_TEAMS_MONTH,
-          variables: {
-            year: String(year),
-            month: String(month),
-          },
-        },
-      ],
-    });
+  const callToast = ({ title, icon, color, text }) => {
     setDisplayToast('show');
-    setMessage(`${name}'s profil has been updated`);
-    setMessageTitle('Update User');
-    setToastIcon(<InfoIcon />);
-    setToastColor('bg-success');
-  };
-  const handleDeleteUser = (deleteUserId) => {
-    if (!deleteUserId) {
-      setDisplayToast('show');
-      setMessage(`id missing`);
-      setMessageTitle('Can not find a ID');
-      setToastIcon(<WarningIcon />);
-      setToastColor('bg-warning');
-      return;
-    }
-    deleteUser({
-      variables: {
-        id: deleteUserId,
-      },
-      refetchQueries: [
-        {
-          query: GET_USERS,
-        },
-        {
-          query: GET_TEAMS_MONTH,
-          variables: {
-            year: String(year),
-            month: String(month),
-          },
-        },
-      ],
-    });
-    setDisplayToast('show');
-    setMessage(`profil deleted`);
-    setMessageTitle('Delete User');
-    setToastIcon(<InfoIcon />);
-    setToastColor('bg-success');
+    setMessage(text);
+    setMessageTitle(title);
+    setToastIcon(icon);
+    setToastColor(color);
   };
 
   useEffect(() => {
@@ -341,35 +175,12 @@ function App() {
       }
     });
   };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const ADMIN = 'admin';
-    const isAdmin = adminValue === ADMIN && passValue === ADMIN;
-    setIsAdmin(isAdmin);
-    if (!adminValue !== ADMIN) {
-      setIsValidUserValue(false);
-    }
-    if (!adminValue !== ADMIN) {
-      setIsValidPassValue(false);
-    }
+  const refetchLists = () => {
+    setRefetchList(true);
   };
 
-  const handleAdmin = (e) => {
-    setAdminValue(e.target.value);
-  };
-
-  const handlePassword = (e) => {
-    setPassValue(e.target.value);
-  };
-
-  const handleLogout = (e) => {
-    e.preventDefault();
-    setAdminValue('');
-    setPassValue('');
-    setIsValidUserValue(true);
-    setIsValidPassValue(true);
-    setIsAdmin(false);
+  const handleAdmin = (status) => {
+    setIsAdmin(status);
   };
 
   if (
@@ -387,75 +198,13 @@ function App() {
     );
   }
 
-  const inputUserClass = `form-control ${isValidUserValue ? '' : 'is-invalid'}`;
-  const inputPassClass = `form-control ${isValidPassValue ? '' : 'is-invalid'}`;
-
   return (
     <div className='p-3'>
       <nav className='navbar navbar-light bg-light'>
         <div className='container-fluid'>
           <span className='navbar-brand mb-0 h1'>Sunday team</span>
           <form className='row g-3 float-end'>
-            {!isAdmin ? (
-              <div className='d-flex justify-content-end'>
-                <div className='col-md-4 '>
-                  <div className='input-group'>
-                    <span
-                      className='input-group-text'
-                      id='inputGroup-sizing-sm'
-                    >
-                      <UserIcon />
-                    </span>
-                    <input
-                      type='text'
-                      id='user'
-                      className={inputUserClass}
-                      aria-label='Sizing example input'
-                      aria-describedby='inputGroup-sizing-sm'
-                      onChange={handleAdmin}
-                    />
-                    <div id='user' className='invalid-feedback'>
-                      you suck !!!
-                    </div>
-                  </div>
-                </div>
-                <div className='col-md-5'>
-                  <div className='input-group'>
-                    <span className='input-group-text'>
-                      <LockIcon />
-                    </span>
-                    <input
-                      type='password'
-                      className={inputPassClass}
-                      aria-label='Sizing example input'
-                      aria-describedby='inputGroup-sizing-sm'
-                      onChange={handlePassword}
-                    />
-
-                    <button
-                      className='btn btn-outline-secondary'
-                      type='submit'
-                      id='button-addon2'
-                      onClick={handleSubmit}
-                    >
-                      Login
-                    </button>
-                    <div id='user' className='invalid-feedback'>
-                      you really suck !!!
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button
-                className='btn btn-outline-secondary'
-                type='submit'
-                id='button-addon2'
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            )}
+            <Login handleIsAdmin={handleAdmin} />
           </form>
         </div>
       </nav>
@@ -688,18 +437,28 @@ function App() {
             })}
           </tbody>
         </table>
+        {teamsMonth.team && (
+          <>
+            <p className='fs-1 text-center'>SetLists</p>
+
+            <Lists teamsMonth={teamsMonth.team} year={year} month={month} />
+          </>
+        )}
+        {teamsMonth.team && !isAdmin && (
+          <EditList
+            teamsMonth={teamsMonth.team}
+            callToast={callToast}
+            year={year}
+            month={month}
+          />
+        )}
         {isAdmin && (
-          <div className='d-flex justify-content-around mt-5'>
-            <AddUser handleNewUser={handleNewUser} />
-            <UpdateUser
-              users={dataUsers.users}
-              handleUpdateUser={handleUpdateUser}
-            />
-            <DeleteUser
-              users={dataUsers.users}
-              handleDeleteUser={handleDeleteUser}
-            />
-          </div>
+          <EditUser
+            callToast={callToast}
+            users={dataUsers.users}
+            refetchUsers={refetchUsers}
+            refetchTeams={refetchTeams}
+          />
         )}
       </main>
       <>

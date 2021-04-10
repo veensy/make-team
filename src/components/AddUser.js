@@ -88,7 +88,7 @@ export const AddUser = ({handleNewUser}) => {
           </label>
         </div>
         </div>
-        <div class="card-footer">
+        <div className="card-footer">
         <button
           onClick={() => handleNewUser(newUser)}
           type='button'

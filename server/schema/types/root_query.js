@@ -6,13 +6,14 @@ const {
   GraphQLNonNull,
   GraphQLString,
 } = graphql;
-const { User, Role, Team, IsAdmin, IsDm, Date } = require('./types');
+const { User, Role, Team, IsAdmin, IsDm, Date,List } = require('./types');
 const Users = require('../../models/user');
 const Roles = require('../../models/role');
 const Teams = require('../../models/team');
 const AreAdmin = require('../../models/isAdmin');
 const AreDm = require('../../models/isDm');
 const Dates = require('../../models/date');
+const Lists = require('../../models/list')
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQuery',
@@ -41,6 +42,19 @@ const RootQuery = new GraphQLObjectType({
       args: { year: { type: GraphQLString }, month: { type: GraphQLString } },
       resolve(parentValue, { year, month }) {
         return Teams.find({year,month});
+      },
+    },
+    lists: {
+      type: new GraphQLList(List),
+      resolve() {
+        return Lists.find({});
+      },
+    },
+    list: {
+      type: new GraphQLList(List),
+      args: { year: { type: GraphQLString }, month: { type: GraphQLString } },
+      resolve(parentValue, { year, month }) {
+        return Lists.find({year,month});
       },
     },
     roles: {

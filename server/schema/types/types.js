@@ -27,6 +27,24 @@ const Team = new GraphQLObjectType({
   })
 });
 
+const List = new GraphQLObjectType({
+  name: "List",
+  fields: () => ({
+    id: { type: GraphQLID },
+    year: { type: GraphQLString },
+    month: { type: GraphQLString },
+    sunday: { type: GraphQLString },
+    title: { type: GraphQLString },
+    link:{ type: GraphQLString },
+    team: {
+      type: new GraphQLList(Team),
+      resolve(parentValue, args) {
+        return Teams.find({ teamId: parentValue.id });
+      }
+    }
+  })
+});
+
 const Role = new GraphQLObjectType({
   name: "Role",
   fields: () => ({
@@ -106,4 +124,4 @@ const Date =  new GraphQLObjectType({
   })
 })
 
-module.exports = { User, Role, Team,IsDm,IsAdmin,Date };
+module.exports = { User, Role, Team,IsDm,IsAdmin,Date,List };
