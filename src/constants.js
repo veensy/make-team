@@ -17,10 +17,13 @@ export const PREV = 'prev';
 
 export const YES = 'yes';
 export const NO = 'no';
+
 export const BASS = 'Bass';
 export const GUITAR = 'Guitar';
 export const KEYBOARD = 'Keyboard';
 export const DRUM = 'Drum';
+export const MD = 'Md';
+export const ROLES = [MD, KEYBOARD, BASS, DRUM, GUITAR];
 
 export const isMdID = '605e0399a74f3d6b563dd3ae';
 export const isNotMdID = '605e039ea74f3d6b563dd3af';
@@ -33,3 +36,13 @@ export const guitarID = '605dede98d57320a33bd05cc';
 export const drumID = '605dedf28d57320a33bd05cd';
 export const keyID = '605dedfc8d57320a33bd05ce';
 
+export const PARIS = 'Paris';
+export const REIMS = 'Reims';
+export const MARTINIQUE = 'Martinique';
+export const CITIES = [PARIS, REIMS, MARTINIQUE];
+
+export const WEDDING = 'wedding';
+export const SERVICE = 'service';
+export const CONCERT = 'concerts';
+
+export const EVENTS = [WEDDING, SERVICE, CONCERT];

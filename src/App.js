@@ -1,11 +1,30 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { GET_USERS, GET_TEAMS_MONTH } from './graphql/queries';
-import { ADD_TEAM, UPDATE_TEAM, DELETE_TEAM } from './graphql/mutations';
 import { getSundaysInMonth, changeDate, getStatus, getSelected } from './utils';
-import { MONTH, NEXT, PREV } from './constants';
+import {
+  MONTH,
+  NEXT,
+  PREV,
+  PARIS,
+  REIMS,
+  MARTINIQUE,
+  SERVICE,
+  CITIES,
+  EVENTS,
+  WEDDING,
+  CONCERT,
+} from './constants';
 import { ArrowLeft, ArrowRight, InfoIcon, WarningIcon } from './icons';
-import { SetList, Login, EditUser, Lists, EditList } from './components';
+import {
+  Login,
+  EditUser,
+  Lists,
+  EditList,
+  EditTeams,
+  Teams,
+  EditEvent,
+} from './components';
 
 const date = new Date();
 
@@ -20,58 +39,15 @@ function App() {
   const [drum, setDrum] = useState([]);
   const [teamsMonth, setTeamsMonth] = useState([]);
   const [sundaysInMonth, setSundaysInMonth] = useState([]);
-  const [valuesToSubmit, setValuesToSubmit] = useState([]);
   const [displayToast, setDisplayToast] = useState('hide');
   const [message, setMessage] = useState('');
   const [messageTitle, setMessageTitle] = useState('');
   const [toastIcon, setToastIcon] = useState(<></>);
   const [toastColor, setToastColor] = useState('');
-
-  const [addTeam] = useMutation(ADD_TEAM, {
-    refetchQueries: [
-      {
-        query: GET_USERS,
-      },
-      {
-        query: GET_TEAMS_MONTH,
-        variables: {
-          year: String(year),
-          month: String(month),
-        },
-      },
-    ],
-    awaitRefetchQueries: true,
-  });
-  const [updateTeam, { error: errorUpdateTeam }] = useMutation(UPDATE_TEAM, {
-    refetchQueries: [
-      {
-        query: GET_USERS,
-      },
-      {
-        query: GET_TEAMS_MONTH,
-        variables: {
-          year: String(year),
-          month: String(month),
-        },
-      },
-    ],
-    awaitRefetchQueries: true,
-  });
-  const [deleteTeamm] = useMutation(DELETE_TEAM, {
-    refetchQueries: [
-      {
-        query: GET_USERS,
-      },
-      {
-        query: GET_TEAMS_MONTH,
-        variables: {
-          year: String(year),
-          month: String(month),
-        },
-      },
-    ],
-    awaitRefetchQueries: true,
-  });
+  const [citySelected, setCity] = useState(PARIS);
+  const [eventSelected, setEvent] = useState(SERVICE);
+  const [eventNameSelected, setEventName] = useState('...');
+  const [showNewEvent, setShowNewEvent] = useState(false);
 
   const {
     loading: loadingUsers,
@@ -88,8 +64,11 @@ function App() {
     variables: {
       year: String(year),
       month: String(month),
+      city: citySelected,
+      event: eventSelected,
     },
   });
+
   const handleClick = (step) => {
     const { newMonth, newYear } = changeDate({ step, month, year });
     setMonth(newMonth);
@@ -105,7 +84,16 @@ function App() {
   };
 
   useEffect(() => {
-    setSundaysInMonth(getSundaysInMonth(month, year));
+    if (eventSelected !== SERVICE && dataTeams?.team) {
+      const sortTeams = dataTeams.team
+        .map((x, y) => x)
+        .sort((x, y) => x.sunday - y.sunday);
+      setEventName(sortTeams[0]?.eventName);
+      setSundaysInMonth([sortTeams[0]?.day]);
+    } else {
+      setSundaysInMonth(getSundaysInMonth(month, year));
+    }
+
     if (dataUsers && dataTeams) {
       const { md, bass, guitar, keyboard, drum } = getStatus(dataUsers.users);
       setMd(md);
@@ -113,82 +101,44 @@ function App() {
       setGuitar(guitar);
       setKeyboard(keyboard);
       setDrum(drum);
-      setTeamsMonth(dataTeams);
+      const sortTeams = dataTeams.team
+        .map((x, y) => x)
+        .sort((x, y) => x.sunday - y.sunday);
+      setTeamsMonth(sortTeams);
     }
-    let newValues = [];
-    if (sundaysInMonth.length && dataTeams && !valuesToSubmit.length) {
-      sundaysInMonth.forEach((sunday, idx) => {
-        if (dataTeams.team[idx]?.id) {
-          newValues.push({ id: dataTeams.team[idx]?.id });
-          setValuesToSubmit(newValues);
-        } else {
-          addTeam({
-            variables: {
-              year: String(year),
-              month: String(month),
-              sunday: String(sunday),
-            },
-          });
-        }
-      });
+  }, [dataUsers, month, year, dataTeams]);
+
+  useEffect(() => {
+    if (dataTeams?.team) {
+      const sortTeams = dataTeams.team
+        .map((x, y) => x)
+        .sort((x, y) => x.sunday - y.sunday);
+
+      const selectedEvent = sortTeams.filter(
+        ({ eventName }) => eventName === eventNameSelected
+      );
+      setSundaysInMonth([selectedEvent[0]?.day]);
     }
-  }, [dataUsers, month, year, dataTeams, addTeam]);
-
-  const handleChange = (e, field, id) => {
-    const name = e.target.value;
-
-    valuesToSubmit.forEach((value, idx) => {
-      if (value.id === id) {
-        valuesToSubmit[idx] = { ...valuesToSubmit[idx], [field]: name };
-      }
-    });
-  };
-
-  const saveTeam = (team) => {
-    valuesToSubmit.forEach((value, idx) => {
-      if (value.id === team.id) {
-        const { md, keyboard, bass, drum, guitar } = valuesToSubmit[idx];
-        updateTeam({
-          variables: {
-            id: team.id,
-            md,
-            keyboard,
-            bass,
-            drum,
-            guitar,
-          },
-        });
-
-        if (errorUpdateTeam) {
-          setDisplayToast('show');
-          setMessage(`adding user failed`);
-          setMessageTitle('Error');
-          setToastIcon(<InfoIcon />);
-          setToastColor('bg-danger');
-        } else {
-          setDisplayToast('show');
-          setMessage(`a new player has been added to the team`);
-          setMessageTitle('New User');
-          setToastIcon(<InfoIcon />);
-          setToastColor('bg-success');
-        }
-      }
-    });
-  };
-  const refetchLists = () => {
-    setRefetchList(true);
-  };
+  }, [eventNameSelected]);
 
   const handleAdmin = (status) => {
     setIsAdmin(status);
   };
 
-  if (
-    loadingUsers ||
-    loadingTeams ||
-    !sundaysInMonth.length ||
-    !teamsMonth.team
-  ) {
+  const handleCities = (e) => {
+    e.preventDefault();
+    setCity(e.target.value);
+  };
+
+  const handleEvents = (e) => {
+    e.preventDefault();
+    setEvent(e.target.value);
+  };
+  const handleEventsName = (e) => {
+    setEventName(e.target.value);
+  };
+
+  if (loadingUsers || loadingTeams || !sundaysInMonth.length || !teamsMonth) {
     return (
       <div className='d-flex justify-content-center align-items-center m-5'>
         <div className='spinner-border' role='status'>
@@ -197,14 +147,13 @@ function App() {
       </div>
     );
   }
-
   return (
-    <div className='p-3'>
-      <nav className='navbar navbar-light bg-light'>
+    <div className='p-3 bg-light'>
+      <nav className='navbar navbar-light'>
         <div className='container-fluid'>
           <span className='navbar-brand mb-0 h1'>Sunday team</span>
           <form className='row g-3 float-end'>
-            <Login handleIsAdmin={handleAdmin} />
+            <Login handleIsAdmin={handleAdmin} isLogged={isAdmin} />
           </form>
         </div>
       </nav>
@@ -228,228 +177,152 @@ function App() {
             <ArrowRight />
           </button>
         </div>
-        <table className='table table-hover'>
-          <thead>
-            <tr>
-              <th style={{ width: '6%' }}>Sunday</th>
-              <th style={{ width: '10%' }}>Md</th>
-              <th style={{ width: '10%' }}>Keyboard</th>
-              <th style={{ width: '10%' }}>Bass</th>
-              <th style={{ width: '10%' }}>Drum</th>
-              <th style={{ width: '10%' }}>Guitar</th>
-              {isAdmin && <th style={{ width: '10%' }}>Save</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {sundaysInMonth.map((sunday, idx) => {
-              const selectedMd = getSelected(
-                teamsMonth.team,
-                String(sunday),
-                'md'
-              );
-              const selectedKey = getSelected(
-                teamsMonth.team,
-                String(sunday),
-                'keyboard'
-              );
-              const selectedBass = getSelected(
-                teamsMonth.team,
-                String(sunday),
-                'bass'
-              );
-              const selectedDrum = getSelected(
-                teamsMonth.team,
-                String(sunday),
-                'drum'
-              );
-              const selectedGuitar = getSelected(
-                teamsMonth.team,
-                String(sunday),
-                'guitar'
-              );
-
-              return (
-                <tr key={sunday} className=''>
-                  <th scope='row align-middle'>{`${sunday} ${MONTH[month]}`}</th>
-                  <td>
-                    {isAdmin ? (
-                      <select
-                        className='form-select'
-                        aria-label='Default select example'
-                        onChange={(e) =>
-                          handleChange(e, 'md', teamsMonth.team[idx].id)
-                        }
-                      >
-                        <option />
-                        {md.map((name) => {
-                          return (
-                            <option
-                              selected={name === selectedMd?.name}
-                              key={name}
-                              value={name}
-                            >
-                              {name}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    ) : (
-                      <p className='m-0'>
-                        {md.filter((name) => {
-                          return name === selectedMd?.name;
-                        })}
-                      </p>
+        <select
+          onChange={(e) => handleCities(e)}
+          className='form-select my-3'
+          defaultValue={citySelected}
+        >
+          {CITIES.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
+        <select
+          onChange={(e) => handleEvents(e)}
+          className='form-select my-3'
+          defaultValue={eventSelected}
+        >
+          {EVENTS.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
+        {(eventSelected === WEDDING || eventSelected === CONCERT) && (
+          <select
+            onChange={(e) => handleEventsName(e)}
+            className='form-select my-3'
+            defaultValue={eventNameSelected}
+          >
+            {teamsMonth.map(({ eventName, id }) => (
+              <option key={id} value={eventName}>
+                {eventName}
+              </option>
+            ))}
+          </select>
+        )}
+        {eventSelected !== SERVICE && isAdmin && (
+          <button
+            className='btn btn-outline-secondary'
+            type='button'
+            id='button-addon1'
+            onClick={() => setShowNewEvent(!showNewEvent)}
+          >
+            Add a new event
+          </button>
+        )}
+        {eventSelected !== SERVICE && isAdmin && showNewEvent && (
+          <EditEvent
+            teamsMonth={teamsMonth}
+            md={md}
+            keyboard={keyboard}
+            bass={bass}
+            guitar={guitar}
+            drum={drum}
+            city={citySelected}
+            event={eventSelected}
+            callToast={callToast}
+          />
+        )}
+        <div className='card my-5'>
+          <div className='card-header bg-secondary text-white'>
+            Modify an event
+          </div>
+          <table className='table table-hover'>
+            <thead>
+              <tr>
+                <th style={{ width: '6%' }}>Sunday</th>
+                <th style={{ width: '10%' }}>Md</th>
+                <th style={{ width: '10%' }}>Keyboard</th>
+                <th style={{ width: '10%' }}>Bass</th>
+                <th style={{ width: '10%' }}>Drum</th>
+                <th style={{ width: '10%' }}>Guitar</th>
+                {isAdmin && (
+                  <>
+                    <th style={{ width: '5%' }}>Save</th>
+                    <th style={{ width: '5%' }}>Delete</th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {sundaysInMonth.map((sunday, idx) => {
+                const preSelected = getSelected(teamsMonth, String(sunday));
+                return (
+                  <tr key={`${sunday}-${idx}`} className=''>
+                    {sunday && (
+                      <th scope='row align-middle'>{`${sunday} ${MONTH[month]}`}</th>
                     )}
-                  </td>
-                  <td>
                     {isAdmin ? (
-                      <select
-                        className='form-select'
-                        aria-label='Default select example'
-                        onChange={(e) =>
-                          handleChange(e, 'keyboard', teamsMonth.team[idx].id)
-                        }
-                      >
-                        <option />
-                        {keyboard.map((name) => {
-                          return (
-                            <option
-                              selected={name === selectedKey?.name}
-                              key={name}
-                              value={name}
-                            >
-                              {name}
-                            </option>
-                          );
-                        })}
-                      </select>
+                      <EditTeams
+                        md={md}
+                        keyboard={keyboard}
+                        bass={bass}
+                        guitar={guitar}
+                        drum={drum}
+                        teamsMonth={teamsMonth}
+                        callToast={callToast}
+                        year={year}
+                        month={month}
+                        city={citySelected}
+                        event={eventSelected}
+                        day={String(sunday)}
+                        preSelected={preSelected}
+                        sundaysInMonth={sundaysInMonth}
+                        idx={idx}
+                        modify
+                      />
                     ) : (
-                      <p className='m-0'>
-                        {keyboard.filter((name) => {
-                          return name === selectedKey?.name;
-                        })}
-                      </p>
+                      <Teams
+                        md={md}
+                        keyboard={keyboard}
+                        bass={bass}
+                        guitar={guitar}
+                        drum={drum}
+                        preSelected={preSelected}
+                      />
                     )}
-                  </td>
-                  <td>
-                    {isAdmin ? (
-                      <select
-                        className='form-select'
-                        aria-label='Default select example'
-                        onChange={(e) =>
-                          handleChange(e, 'bass', teamsMonth.team[idx].id)
-                        }
-                      >
-                        <option />
-                        {bass.map((name) => {
-                          return (
-                            <option
-                              selected={name === selectedBass?.name}
-                              key={name}
-                              value={name}
-                            >
-                              {name}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    ) : (
-                      <p className='m-0'>
-                        {bass.filter((name) => {
-                          return name === selectedBass?.name;
-                        })}
-                      </p>
-                    )}
-                  </td>
-                  <td>
-                    {isAdmin ? (
-                      <select
-                        className='form-select'
-                        aria-label='Default select example'
-                        onChange={(e) =>
-                          handleChange(e, 'drum', teamsMonth.team[idx].id)
-                        }
-                      >
-                        <option />
-                        {drum.map((name) => {
-                          return (
-                            <option
-                              selected={name === selectedDrum?.name}
-                              key={name}
-                              value={name}
-                            >
-                              {name}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    ) : (
-                      <p className='m-0'>
-                        {drum.filter((name) => {
-                          return name === selectedDrum?.name;
-                        })}
-                      </p>
-                    )}
-                  </td>
-                  <td>
-                    {isAdmin ? (
-                      <select
-                        className='form-select'
-                        aria-label='Default select example'
-                        onChange={(e) =>
-                          handleChange(e, 'guitar', teamsMonth.team[idx].id)
-                        }
-                      >
-                        <option />
-                        {guitar.map((name) => {
-                          return (
-                            <option
-                              selected={name === selectedGuitar?.name}
-                              key={name}
-                              value={name}
-                            >
-                              {name}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    ) : (
-                      <p className='m-0'>
-                        {guitar.filter((name) => {
-                          return name === selectedGuitar?.name;
-                        })}
-                      </p>
-                    )}
-                  </td>
-                  {isAdmin && (
-                    <td>
-                      <button
-                        onClick={() => saveTeam(teamsMonth.team[idx])}
-                        type='button'
-                        className='btn btn-outline-primary'
-                      >
-                        save
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {teamsMonth.team && (
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {teamsMonth && !isAdmin && (
           <>
             <p className='fs-1 text-center'>SetLists</p>
-
-            <Lists teamsMonth={teamsMonth.team} year={year} month={month} />
+            <Lists
+              teamsMonth={teamsMonth}
+              year={year}
+              month={month}
+              city={citySelected}
+              event={eventSelected}
+              sundaysInMonth={sundaysInMonth}
+              eventName={eventNameSelected}
+            />
           </>
         )}
-        {teamsMonth.team && isAdmin && (
+        {teamsMonth && isAdmin && (
           <EditList
-            teamsMonth={teamsMonth.team}
+            teamsMonth={teamsMonth}
             callToast={callToast}
             year={year}
             month={month}
+            city={citySelected}
+            event={eventSelected}
+            sundaysInMonth={sundaysInMonth}
+            eventName={eventNameSelected}
           />
         )}
         {isAdmin && (

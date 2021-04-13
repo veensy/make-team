@@ -31,7 +31,6 @@ export const UpdateUser = ({ users, handleUpdateUser }) => {
 
   useEffect(() => {
     users.forEach(({ name, isAdmin, isDm }) => {
-        
       if (name === selected) {
         setIsAdmin(isAdmin.status === YES ? true : false);
         setIsMd(isDm.status === YES ? true : false);
@@ -42,10 +41,23 @@ export const UpdateUser = ({ users, handleUpdateUser }) => {
           isAdminId: isAdmin.status === YES ? isAdminID : isNotAdminID,
           roleId: newRole ? newRole : currentRole,
         });
-  
       }
     });
-  }, [selected,newRole,newName]);
+  }, [selected, newRole, newName]);
+  const preSelectRole = () => {
+    switch (currentRole) {
+      case bassID:
+        return bassID;
+      case keyID:
+        return keyID;
+      case drumID:
+        return drumID;
+      case guitarID:
+        return guitarID;
+      default:
+        break;
+    }
+  };
   return (
     <div className='card' style={{ width: '18rem' }}>
       <div className='card-header bg-secondary text-white'>Modify a member</div>
@@ -97,21 +109,15 @@ export const UpdateUser = ({ users, handleUpdateUser }) => {
           className='form-select py-0 my-2'
           aria-label='Default select example'
           onChange={(e) => {
-            setNewRole(e.target.value); setCurrenRole('');
+            setNewRole(e.target.value);
+            setCurrenRole('');
           }}
+          value={preSelectRole()}
         >
-          <option selected={currentRole === keyID} value={keyID}>
-            keyboard
-          </option>
-          <option selected={currentRole === bassID} value={bassID}>
-            bass
-          </option>
-          <option selected={currentRole === drumID} value={drumID}>
-            drum
-          </option>
-          <option selected={currentRole === guitarID} value={guitarID}>
-            guitar
-          </option>
+          <option value={keyID}>keyboard</option>
+          <option value={bassID}>bass</option>
+          <option value={drumID}>drum</option>
+          <option value={guitarID}>guitar</option>
         </select>
         <div className='form-check'>
           <input

@@ -14,7 +14,7 @@ export const UPDATE_LIST = gql`
       id
       year
       month
-      sunday
+      day
       title
       link
     }

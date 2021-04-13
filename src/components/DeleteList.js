@@ -1,18 +1,28 @@
-import { useState } from 'react';
-import { useQuery,useMutation } from '@apollo/client';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
 import { Loading } from './Loading';
-import { MONTH } from '../constants';
+import { MONTH, SERVICE } from '../constants';
 import { GET_LISTS_MONTH } from '../graphql/queries';
 import { DELETE_LIST } from '../graphql/mutations';
 
 import { TrashIcon } from '../icons';
 
-export const DeleteList = ({ teamsMonth, year, month }) => {
-  const [sundaySelected, setSunday] = useState(teamsMonth[0]?.sunday);
+export const DeleteList = ({
+  teamsMonth,
+  year,
+  month,
+  city,
+  event,
+  sundaysInMonth,
+  eventName,
+}) => {
+  const [daySelected, setDay] = useState('');
   const { loading, data, error, refetch } = useQuery(GET_LISTS_MONTH, {
     variables: {
       year: String(year),
       month: String(month),
+      city,
+      event,
     },
     awaitRefetchQueries: true,
   });
@@ -23,21 +33,36 @@ export const DeleteList = ({ teamsMonth, year, month }) => {
         variables: {
           year: String(year),
           month: String(month),
+          city,
+          event,
         },
       },
     ],
     awaitRefetchQueries: true,
-  })
+  });
 
+  useEffect(() => {
+    if (teamsMonth && event === SERVICE) {
+      setDay(teamsMonth[0]?.day);
+    } else if (data?.list) {
+      const listOfEvent = data.list.filter(
+        (team) => team.eventName === eventName
+      );
+      if (listOfEvent) {
+        setDay(listOfEvent[0]?.day);
+      }
+    }
+    refetch();
+  }, [teamsMonth, eventName]);
 
-  const deleteTitle=({id})=>{
-      deleteList({
-        variables: {
-          id,
-        },
-      })
-      refetch()
-  }
+  const deleteTitle = ({ id }) => {
+    deleteList({
+      variables: {
+        id,
+      },
+    });
+    refetch();
+  };
 
   if (loading) {
     return <Loading />;
@@ -47,33 +72,37 @@ export const DeleteList = ({ teamsMonth, year, month }) => {
     <div className='d-flex justify-content-center'>
       <div className=' p-2'>
         <div className='card' style={{ width: '24rem' }}>
-          <div className='card-header bg-secondary text-white'>
-           Delete List
-          </div>
+          <div className='card-header bg-secondary text-white'>Delete List</div>
           <div className='card-body'>
-          <select
+            <select
               className='form-select py-0 my-2'
               aria-label='Default select example'
-              onChange={(e) => setSunday(e.target.value)}
+              onChange={(e) => setDay(e.target.value)}
             >
-              {teamsMonth.map(({ sunday, month,id }) => {
+              {sundaysInMonth.map((sunday, idx) => {
                 return (
-                  <option key={id} value={sunday}>{`${sunday} ${MONTH[month]}`}</option>
+                  <option
+                    key={idx}
+                    value={sunday}
+                  >{`${sunday} ${MONTH[month]}`}</option>
                 );
               })}
             </select>
             <ul className='list-group list-group-flush'>
               {data.list
-                .filter(({ sunday }) => sunday === sundaySelected)
-                .map(({ title ,id}) => {
+                .filter(({ day }) => day === daySelected)
+                .map(({ title, id }) => {
                   return (
-                    <li key={id} className='list-group-item d-flex justify-content-between'>
+                    <li
+                      key={id}
+                      className='list-group-item d-flex justify-content-between'
+                    >
                       {title}
                       <button
                         className='btn btn-outline-secondary'
                         type='button'
                         id='button-addon1'
-                        onClick={() => deleteTitle({id})}
+                        onClick={() => deleteTitle({ id })}
                       >
                         <TrashIcon />
                       </button>

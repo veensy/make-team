@@ -1,23 +1,35 @@
 import { useMutation } from '@apollo/client';
 import { AddUser, UpdateUser, DeleteUser } from '../components';
 import { ADD_USER, UPDATE_USER, DELETE_USER } from '../graphql/mutations';
+import { GET_USERS } from '../graphql/queries';
+
 import { InfoIcon, WarningIcon } from '../icons';
 
-export const EditUser = ({
-  callToast,
-  users,
-  refetchTeams,
-  refetchUsers,
-}) => {
+export const EditUser = ({ callToast, users, refetchTeams, refetchUsers }) => {
   const [addUser, { error: errorAddUser }] = useMutation(ADD_USER, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+    ],
     awaitRefetchQueries: true,
   });
 
   const [updateUser] = useMutation(UPDATE_USER, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+    ],
     awaitRefetchQueries: true,
   });
 
   const [deleteUser] = useMutation(DELETE_USER, {
+    refetchQueries: [
+      {
+        query: GET_USERS,
+      },
+    ],
     awaitRefetchQueries: true,
   });
 

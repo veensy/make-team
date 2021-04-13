@@ -4,32 +4,41 @@ export const ADD_TEAM = gql`
   mutation AddTeam(
     $year: String!
     $month: String!
-    $sunday: String!
+    $day: String!
     $md: String
     $bass: String
     $guitar: String
     $keyboard: String
     $drum: String
+    $city:String!
+    $event:String!
+    $eventName:String
   ) {
     addTeam(
       year: $year
       month: $month
-      sunday: $sunday
+      day: $day
       md: $md
       bass: $bass
       guitar: $guitar
       keyboard: $keyboard
       drum: $drum
+      city:$city
+      event:$event
+      eventName:$eventName
     ) {
       id
       year
       month
-      sunday
+      day
       md
       bass
       keyboard
       guitar
       drum
+      city
+      event
+      eventName
     }
   }
 `;

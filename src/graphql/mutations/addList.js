@@ -4,23 +4,32 @@ export const ADD_LIST = gql`
   mutation AddList(
     $year: String!
     $month: String!
-    $sunday: String!
+    $day: String!
     $title: String
     $link: String
+    $city:String!
+    $event:String!
+    $eventName:String
   ) {
     addList(
       year: $year
       month: $month
-      sunday: $sunday
+      day: $day
       title: $title
       link: $link
+      city:$city
+      event:$event
+      eventName:$eventName
     ) {
       id
       year
       month
-      sunday
+      day
       title
       link
+      city
+      event
+      eventName
     }
   }
 `;

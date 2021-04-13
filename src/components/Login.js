@@ -2,7 +2,7 @@ import { useState} from 'react'
 import { LockIcon, UserIcon } from '../icons';
 
 
-export const Login = ({handleIsAdmin}) => {
+export const Login = ({handleIsAdmin,isLogged}) => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isValidUserValue, setIsValidUserValue] = useState(true);
     const [isValidPassValue, setIsValidPassValue] = useState(true);
@@ -43,12 +43,11 @@ export const Login = ({handleIsAdmin}) => {
         setIsAdmin(false);
         handleIsAdmin(false)
       };
-
-  if (isAdmin) {
+  if (isAdmin || isLogged) {
     return (
       <button
         className='btn btn-outline-secondary'
-        type='submit'
+        type='button'
         id='button-addon2'
         onClick={handleLogout}
       >

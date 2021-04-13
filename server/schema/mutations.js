@@ -1,13 +1,12 @@
 const graphql = require('graphql');
 const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLNonNull } = graphql;
-const { User, Role, Team, IsAdmin, IsDm, Date,List } = require('./types/types');
+const { User, Role, Team, IsAdmin, IsDm, List } = require('./types/types');
 const Users = require('../models/user');
 const Roles = require('../models/role');
 const Teams = require('../models/team');
 const AreAdmin = require('../models/isAdmin');
 const AreDm = require('../models/isDm');
-const Dates = require('../models/date');
-const Lists = require('../models/list')
+const Lists = require('../models/list');
 
 const mutation = new GraphQLObjectType({
   name: 'Mutation',
@@ -29,26 +28,44 @@ const mutation = new GraphQLObjectType({
       args: {
         year: { type: new GraphQLNonNull(GraphQLString) },
         month: { type: new GraphQLNonNull(GraphQLString) },
-        sunday: { type: new GraphQLNonNull(GraphQLString) },
+        day: { type: new GraphQLNonNull(GraphQLString) },
         md: { type: GraphQLString },
         bass: { type: GraphQLString },
         guitar: { type: GraphQLString },
         keyboard: { type: GraphQLString },
         drum: { type: GraphQLString },
+        city: { type: new GraphQLNonNull(GraphQLString) },
+        event: { type: new GraphQLNonNull(GraphQLString) },
+        eventName: { type: GraphQLString },
       },
       resolve(
         parentValue,
-        { year, month, sunday, md, bass, guitar, keyboard, drum }
-      ) {
-        return new Teams({
+        {
           year,
           month,
-          sunday,
+          day,
           md,
           bass,
           guitar,
           keyboard,
           drum,
+          city,
+          event,
+          eventName,
+        }
+      ) {
+        return new Teams({
+          year,
+          month,
+          day,
+          md,
+          bass,
+          guitar,
+          keyboard,
+          drum,
+          city,
+          event,
+          eventName,
         }).save();
       },
     },
@@ -57,20 +74,26 @@ const mutation = new GraphQLObjectType({
       args: {
         year: { type: new GraphQLNonNull(GraphQLString) },
         month: { type: new GraphQLNonNull(GraphQLString) },
-        sunday: { type: new GraphQLNonNull(GraphQLString) },
+        day: { type: new GraphQLNonNull(GraphQLString) },
+        city: { type: new GraphQLNonNull(GraphQLString) },
+        event: { type: new GraphQLNonNull(GraphQLString) },
         title: { type: GraphQLString },
         link: { type: GraphQLString },
+        eventName: { type: GraphQLString },
       },
       resolve(
         parentValue,
-        { year, month, sunday, title, link }
+        { year, month, day, title, link, city, event, eventName }
       ) {
         return new Lists({
           year,
           month,
-          sunday,
+          day,
           title,
           link,
+          city,
+          event,
+          eventName,
         }).save();
       },
     },
@@ -121,16 +144,50 @@ const mutation = new GraphQLObjectType({
       type: Team,
       args: {
         id: { type: new GraphQLNonNull(GraphQLID) },
+        year: { type: new GraphQLNonNull(GraphQLString) },
+        month: { type: new GraphQLNonNull(GraphQLString) },
+        day: { type: new GraphQLNonNull(GraphQLString) },
+        city: { type: new GraphQLNonNull(GraphQLString) },
+        event: { type: new GraphQLNonNull(GraphQLString) },
         md: { type: GraphQLString },
         bass: { type: GraphQLString },
         guitar: { type: GraphQLString },
         keyboard: { type: GraphQLString },
         drum: { type: GraphQLString },
+        eventName: { type: GraphQLString },
       },
-      resolve(parentValue, { id, md, bass, guitar, keyboard, drum }) {
+      resolve(
+        parentValue,
+        {
+          id,
+          md,
+          bass,
+          guitar,
+          keyboard,
+          drum,
+          eventName,
+          year,
+          month,
+          day,
+          city,
+          event,
+        }
+      ) {
         return Teams.findByIdAndUpdate(
           id,
-          { md, bass, guitar, keyboard, drum },
+          {
+            md,
+            bass,
+            guitar,
+            keyboard,
+            drum,
+            eventName,
+            year,
+            month,
+            day,
+            city,
+            event,
+          },
           { omitUndefined: true }
         );
       },
@@ -141,11 +198,12 @@ const mutation = new GraphQLObjectType({
         id: { type: new GraphQLNonNull(GraphQLID) },
         title: { type: GraphQLString },
         link: { type: GraphQLString },
+        eventName: { type: GraphQLString },
       },
-      resolve(parentValue, { id, title, link }) {
+      resolve(parentValue, { id, title, link, eventName }) {
         return Lists.findByIdAndUpdate(
           id,
-          { title, link},
+          { title, link, eventName },
           { omitUndefined: true }
         );
       },
@@ -155,8 +213,8 @@ const mutation = new GraphQLObjectType({
       args: {
         id: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve(parentValue, {  id }) {
-        return Teams.findByIdAndDelete( id);
+      resolve(parentValue, { id }) {
+        return Teams.findByIdAndDelete(id);
       },
     },
     deleteList: {
@@ -164,8 +222,8 @@ const mutation = new GraphQLObjectType({
       args: {
         id: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve(parentValue, {  id }) {
-        return Lists.findByIdAndDelete( id);
+      resolve(parentValue, { id }) {
+        return Lists.findByIdAndDelete(id);
       },
     },
     deleteUser: {

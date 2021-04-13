@@ -1,14 +1,22 @@
 import { gql } from '@apollo/client';
 
 export const GET_LISTS_MONTH = gql`
-  query GetListsMonth($year: String, $month: String) {
-    list(year: $year, month: $month) {
+  query GetListsMonth(
+    $year: String
+    $month: String
+    $city: String
+    $event: String
+  ) {
+    list(year: $year, month: $month, city: $city, event: $event) {
       id
       year
       month
-      sunday
+      day
       title
       link
+      city
+      event
+      eventName
     }
   }
 `;

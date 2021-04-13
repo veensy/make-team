@@ -7,6 +7,10 @@ export const EditList = ({
   callToast,
   year,
   month,
+  city,
+  event,
+  sundaysInMonth,
+  eventName
 }) => {
   return (
     <div className='d-flex overflow-auto  flex-row my-5'>
@@ -15,18 +19,30 @@ export const EditList = ({
         callToast={callToast}
         year={year}
         month={month}
+        city={city}
+        event={event}
+        sundaysInMonth={sundaysInMonth}
+        eventName={eventName}
       />
       <UpdateList
         teamsMonth={teamsMonth}
         callToast={callToast}
         year={year}
         month={month}
+        city={city}
+        event={event}
+        sundaysInMonth={sundaysInMonth}
+        eventName={eventName}
       />
       <DeleteList
         teamsMonth={teamsMonth}
         callToast={callToast}
         year={year}
         month={month}
+        city={city}
+        event={event}
+        sundaysInMonth={sundaysInMonth}
+        eventName={eventName}
       />
     </div>
   );

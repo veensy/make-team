@@ -6,14 +6,13 @@ const {
   GraphQLNonNull,
   GraphQLString,
 } = graphql;
-const { User, Role, Team, IsAdmin, IsDm, Date,List } = require('./types');
+const { User, Role, Team, IsAdmin, IsDm, List } = require('./types');
 const Users = require('../../models/user');
 const Roles = require('../../models/role');
 const Teams = require('../../models/team');
 const AreAdmin = require('../../models/isAdmin');
 const AreDm = require('../../models/isDm');
-const Dates = require('../../models/date');
-const Lists = require('../../models/list')
+const Lists = require('../../models/list');
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQuery',
@@ -39,9 +38,14 @@ const RootQuery = new GraphQLObjectType({
     },
     team: {
       type: new GraphQLList(Team),
-      args: { year: { type: GraphQLString }, month: { type: GraphQLString } },
-      resolve(parentValue, { year, month }) {
-        return Teams.find({year,month});
+      args: {
+        year: { type: GraphQLString },
+        month: { type: GraphQLString },
+        city: { type: GraphQLString },
+        event: { type: GraphQLString },
+      },
+      resolve(parentValue, { year, month, city, event }) {
+        return Teams.find({ year, month, city, event });
       },
     },
     lists: {
@@ -52,9 +56,14 @@ const RootQuery = new GraphQLObjectType({
     },
     list: {
       type: new GraphQLList(List),
-      args: { year: { type: GraphQLString }, month: { type: GraphQLString } },
-      resolve(parentValue, { year, month }) {
-        return Lists.find({year,month});
+      args: {
+        year: { type: GraphQLString },
+        month: { type: GraphQLString },
+        city: { type: GraphQLString },
+        event: { type: GraphQLString },
+      },
+      resolve(parentValue, { year, month, city }) {
+        return Lists.find({ year, month, city });
       },
     },
     roles: {
@@ -80,19 +89,6 @@ const RootQuery = new GraphQLObjectType({
       type: new GraphQLList(IsDm),
       resolve() {
         return AreDm.find({});
-      },
-    },
-    dates: {
-      type: new GraphQLList(Date),
-      resolve() {
-        return Dates.find({});
-      },
-    },
-    date: {
-      type: Date,
-      args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(parentValue, { id }) {
-        return Dates.findById(id);
       },
     },
   }),

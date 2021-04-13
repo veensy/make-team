@@ -1,10 +1,19 @@
-export const getSelected = (team, currentSunday, role) => {
-  const selected = team.filter(({ sunday }) => {
-    return sunday === currentSunday;
+import { ROLES } from '../constants';
+export const getSelected = (team, currentDay, role) => {
+  const selected = team.filter(({ day }) => {
+    return day === currentDay;
   });
-  if (selected[0]?.[role]) {
-    return { name: selected[0][role], id: selected[0].id };
-  }
-  return;
+
+  let buildSelection = {};
+  ROLES.map((role) => {
+    if (selected[0]?.[role.toLowerCase()]) {
+      buildSelection = {
+        ...buildSelection,
+        [role.toLowerCase()]: selected[0][role.toLowerCase()],
+        teamId: selected[0]?.id,
+      };
+    }
+  });
+  return buildSelection;
 };
 export default getSelected;
