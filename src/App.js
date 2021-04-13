@@ -237,7 +237,7 @@ function App() {
         )}
         <div className='card my-5'>
           <div className='card-header bg-secondary text-white'>
-            Modify an event
+          { isAdmin ?' Modify team' : 'Team'}
           </div>
           <table className='table table-hover'>
             <thead>
