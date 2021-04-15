@@ -177,41 +177,43 @@ function App() {
             <ArrowRight />
           </button>
         </div>
-        <select
-          onChange={(e) => handleCities(e)}
-          className='form-select my-3'
-          defaultValue={citySelected}
-        >
-          {CITIES.map((city) => (
-            <option key={city} value={city}>
-              {city}
-            </option>
-          ))}
-        </select>
-        <select
-          onChange={(e) => handleEvents(e)}
-          className='form-select my-3'
-          defaultValue={eventSelected}
-        >
-          {EVENTS.map((city) => (
-            <option key={city} value={city}>
-              {city}
-            </option>
-          ))}
-        </select>
-        {(eventSelected === WEDDING || eventSelected === CONCERT) && (
+        <div className='d-flex w-50 justify-center mx-auto'>
           <select
-            onChange={(e) => handleEventsName(e)}
+            onChange={(e) => handleCities(e)}
             className='form-select my-3'
-            defaultValue={eventNameSelected}
+            defaultValue={citySelected}
           >
-            {teamsMonth.map(({ eventName, id }) => (
-              <option key={id} value={eventName}>
-                {eventName}
+            {CITIES.map((city) => (
+              <option key={city} value={city}>
+                {city}
               </option>
             ))}
           </select>
-        )}
+          <select
+            onChange={(e) => handleEvents(e)}
+            className='form-select my-3'
+            defaultValue={eventSelected}
+          >
+            {EVENTS.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
+          {(eventSelected === WEDDING || eventSelected === CONCERT) && (
+            <select
+              onChange={(e) => handleEventsName(e)}
+              className='form-select my-3'
+              defaultValue={eventNameSelected}
+            >
+              {teamsMonth.map(({ eventName, id }) => (
+                <option key={id} value={eventName}>
+                  {eventName}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         {eventSelected !== SERVICE && isAdmin && (
           <button
             className='btn btn-outline-secondary'
@@ -237,7 +239,7 @@ function App() {
         )}
         <div className='card my-5'>
           <div className='card-header bg-secondary text-white'>
-          { isAdmin ?' Modify team' : 'Team'}
+            {isAdmin ? ' Modify team' : 'Team'}
           </div>
           <table className='table table-hover'>
             <thead>
