@@ -34,7 +34,7 @@ export const UpdateList = ({
           year: String(year),
           month: String(month),
           city,
-          event
+          event,
         },
       },
     ],
@@ -92,31 +92,29 @@ export const UpdateList = ({
   };
 
   return (
-    <div className='d-flex justify-content-center'>
-      <div className=' p-2'>
-        <div className='card' style={{ width: '32rem' }}>
-          <div className='card-header bg-secondary text-white'>
-            Modify a song
-          </div>
-          <div className='card-body'>
-            <select
-              className='form-select  py-0 my-2'
-              aria-label='Default select example'
-              onChange={(e) => setDay(e.target.value)}
-            >
-              {sundaysInMonth.map((sunday, idx) => {
-                return (
-                  <option
-                    key={idx}
-                    value={sunday}
-                  >{`${sunday} ${MONTH[month]}`}</option>
-                );
-              })}
-            </select>
-            {data.list
-              .filter(({ day }) => day === daySelected)
-              .map(({ title, link, id }, idx) => {
-                return (
+    <div className='card d-flex justify-content-center'>
+      <div className='card-header bg-secondary text-white'>Modify a song</div>
+      <div className='card-body'>
+        <select
+          className='form-select  py-0 my-2'
+          aria-label='Default select example'
+          onChange={(e) => setDay(e.target.value)}
+        >
+          {sundaysInMonth.map((sunday, idx) => {
+            return (
+              <option
+                key={idx}
+                value={sunday}
+              >{`${sunday} ${MONTH[month]}`}</option>
+            );
+          })}
+        </select>
+        {data.list
+          .filter(({ day }) => day === daySelected)
+          .map(({ title, link, id }, idx) => {
+            return (
+              <div className='d-flex flex-wrap mb-3'>
+                <div className='d-flex flex-wrap'>
                   <div key={id} className='input-group mb-3'>
                     <span className='input-group-text' id='basic-addon1'>
                       <NoteIcon />
@@ -130,6 +128,10 @@ export const UpdateList = ({
                       aria-describedby='basic-addon1'
                       onChange={(e) => handleChange(e, idx)}
                     />
+                  </div>
+                </div>
+                <div className='d-flex flex-wrap'>
+                  <div className='input-group mb-3'>
                     <span className='input-group-text' id='basic-addon1'>
                       <YouTubeIcon />
                     </span>
@@ -142,19 +144,19 @@ export const UpdateList = ({
                       aria-describedby='basic-addon1'
                       onChange={(e) => handleChange(e, idx)}
                     />
-                    <button
-                      className='btn btn-outline-secondary'
-                      type='button'
-                      id='button-addon1'
-                      onClick={() => update({ id, idx })}
-                    >
-                      save
-                    </button>
                   </div>
-                );
-              })}
-          </div>
-        </div>
+                </div>
+                <button
+                  className='btn btn-outline-secondary mb-3 mx-sm-0 mx-auto'
+                  type='button'
+                  id='button-addon1'
+                  onClick={() => update({ id, idx })}
+                >
+                  save
+                </button>
+              </div>
+            );
+          })}
       </div>
     </div>
   );

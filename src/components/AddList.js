@@ -3,7 +3,7 @@ import { useMutation } from '@apollo/client';
 import { MONTH } from '../constants';
 import { ListInputs } from './ListInputs';
 import { GET_LISTS_MONTH } from '../graphql/queries';
-import { ADD_LIST, UPDATE_LIST } from '../graphql/mutations';
+import { ADD_LIST } from '../graphql/mutations';
 import { WarningIcon } from '../icons';
 
 export const AddList = ({
@@ -16,10 +16,11 @@ export const AddList = ({
   event,
   eventName,
 }) => {
-  const [listTosave, setlistTosave] = useState([]);
+  const emptyMessage = { type: '', message: '' };
   const [daySelected, setDay] = useState('');
-  const [emptyValues, setEmptyValues] = useState(true);
-  const [addList, { error: errorAddList }] = useMutation(ADD_LIST, {
+  const [helperMessage, setMessage] = useState(emptyMessage);
+  const [disabled, setDisable] = useState(false);
+  const [addList, { data, error }] = useMutation(ADD_LIST, {
     refetchQueries: [
       {
         query: GET_LISTS_MONTH,
@@ -43,40 +44,62 @@ export const AddList = ({
     setDay(sundaysInMonth[0]);
   }, [sundaysInMonth]);
 
-  const saveList = (setlist) => {
-    if (setlist.length) {
-      setEmptyValues(false);
+  useEffect(() => {
+    if (helperMessage?.message) {
+      setDisable(true);
+      const timer = setTimeout(() => {
+        setDisable(false);
+        setMessage(emptyMessage);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
-    setlistTosave(setlist);
-  };
-  const handleSetList = ({ day }) => {
-    listTosave.map(({ title, link }) => {
-      if (!title && !link) {
-        callToast({
-          text: `title and link missing`,
-          title: 'Empty field',
-          icon: <WarningIcon />,
-          color: 'bg-warning',
-        });
-      } else {
-        addList({
-          variables: {
-            year: String(year),
-            month: String(month),
-            day: String(day),
-            title,
-            link,
-            city,
-            event,
-        eventName
-          },
+  }, [helperMessage.message]);
+
+  const saveSetList = (saveList) => {
+    const { title, link } = saveList;
+    if (!daySelected || !year || !month) {
+      setMessage({ type: 'error', message: 'please reload the page' });
+      return;
+    }
+    if (!title && !link) {
+      setMessage({ type: 'error', message: 'title and link missing' });
+      callToast({
+        text: `title and link missing`,
+        title: 'Empty field',
+        icon: <WarningIcon />,
+        color: 'bg-warning',
+      });
+      return;
+    } else {
+      setDisable(true);
+      addList({
+        variables: {
+          year: String(year),
+          month: String(month),
+          day: String(daySelected),
+          title,
+          link,
+          city,
+          event,
+          eventName,
+        },
+      });
+      if (error) {
+        setMessage({
+          type: 'error',
+          message: 'Not able to save please try again',
         });
       }
-    });
+      if (data) {
+        setMessage({ type: 'success', message: 'Saved' });
+      }
+    }
   };
+  const helperTypeClassname = `${
+    helperMessage.type === 'error' ? 'text-danger' : 'text-success'
+  } fw-bolder m-0`;
   return (
-    <div className=' p-2'>
-      <div className='card' style={{ width: '32rem' }}>
+      <div className='card d-flex justify-content-center' >
         <div className='card-header bg-secondary text-white'>Add a song</div>
 
         <div className='card-body'>
@@ -94,20 +117,16 @@ export const AddList = ({
               );
             })}
           </select>
-          <ListInputs setlist={saveList} />
-        </div>
-        <div className='card-footer '>
-          <button
-            onClick={() => handleSetList({ day: daySelected })}
-            type='button'
-            className='btn btn-outline-secondary mx-auto d-flex  justify-content-center'
-            disabled={emptyValues}
-          >
-            save
-          </button>
+          <ListInputs
+            saveSetList={saveSetList}
+            disabled={disabled}
+            helperMessage={helperMessage}
+          />
+          {helperMessage?.message && (
+            <p className={helperTypeClassname}>{helperMessage.message}</p>
+          )}
         </div>
       </div>
-    </div>
   );
 };
 export default AddList;

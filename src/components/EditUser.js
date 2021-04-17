@@ -127,7 +127,7 @@ export const EditUser = ({ callToast, users, refetchTeams, refetchUsers }) => {
     });
   };
   return (
-    <div className='d-flex justify-content-around mt-5 p-3'>
+    <div className='d-flex justify-content-around mt-5 p-3 flex-wrap gap-3'>
       <AddUser handleNewUser={handleNewUser} />
       <UpdateUser users={users} handleUpdateUser={handleUpdateUser} />
       <DeleteUser users={users} handleDeleteUser={handleDeleteUser} />

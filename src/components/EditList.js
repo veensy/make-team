@@ -13,7 +13,8 @@ export const EditList = ({
   eventName
 }) => {
   return (
-    <div className='d-flex overflow-auto  flex-row my-5'>
+    <div className='d-flex my-5  justify-content-center mx-auto '>
+      <div className='d-inline-flex flex-column gap-3'>
       <AddList
         teamsMonth={teamsMonth}
         callToast={callToast}
@@ -44,6 +45,7 @@ export const EditList = ({
         sundaysInMonth={sundaysInMonth}
         eventName={eventName}
       />
+      </div>
     </div>
   );
 };

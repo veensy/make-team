@@ -9,3 +9,4 @@ export { default as EditList } from './EditList';
 export { default as EditTeams } from './EditTeams'
 export { default as  Teams } from './Teams'
 export { default as EditEvent } from "./EditEvent"
+export { default as ShowEdit } from './ShowEdit'

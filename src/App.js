@@ -15,7 +15,7 @@ import {
   WEDDING,
   CONCERT,
 } from './constants';
-import { ArrowLeft, ArrowRight, InfoIcon, WarningIcon } from './icons';
+import { ArrowLeft, ArrowRight } from './icons';
 import {
   Login,
   EditUser,
@@ -24,6 +24,7 @@ import {
   EditTeams,
   Teams,
   EditEvent,
+  ShowEdit
 } from './components';
 
 const date = new Date();
@@ -48,6 +49,9 @@ function App() {
   const [eventSelected, setEvent] = useState(SERVICE);
   const [eventNameSelected, setEventName] = useState('...');
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [showEditTeam, setShowEditTeam] = useState(false);
+  const [showEditlist, setShowEditlist] = useState(false);
+  const [showEditMember, setShowEditMember] = useState(false);
 
   const {
     loading: loadingUsers,
@@ -135,7 +139,36 @@ function App() {
     setEvent(e.target.value);
   };
   const handleEventsName = (e) => {
+    const etv = e.target.value;
+    if (etv === 'newEvent') {
+      return setShowNewEvent(!showNewEvent);
+    }
     setEventName(e.target.value);
+    setShowNewEvent(!showNewEvent);
+  };
+
+  const handleEdit = (choice) => {
+    switch (choice) {
+      case 'team':
+        setShowEditTeam(!showEditTeam);
+        setShowEditlist(false);
+        setShowEditMember(false);
+        break;
+      case 'setlist':
+        setShowEditTeam(false);
+        setShowEditlist(!showEditlist);
+        setShowEditMember(false);
+
+        break;
+      case 'member':
+        setShowEditTeam(false);
+        setShowEditlist(false);
+        setShowEditMember(!showEditMember);
+        break;
+
+      default:
+        break;
+    }
   };
 
   if (loadingUsers || loadingTeams || !sundaysInMonth.length || !teamsMonth) {
@@ -147,6 +180,7 @@ function App() {
       </div>
     );
   }
+  console.log({showEditMember})
   return (
     <div className='p-3 bg-light'>
       <nav className='navbar navbar-light'>
@@ -177,7 +211,7 @@ function App() {
             <ArrowRight />
           </button>
         </div>
-        <div className='d-flex w-50 justify-center mx-auto'>
+        <div className='d-flex w-50 justify-center mx-auto gap-1'>
           <select
             onChange={(e) => handleCities(e)}
             className='form-select my-3'
@@ -204,8 +238,9 @@ function App() {
             <select
               onChange={(e) => handleEventsName(e)}
               className='form-select my-3'
-              defaultValue={eventNameSelected}
+              defaultValue={isAdmin ? 'newEvent' : eventNameSelected}
             >
+              {isAdmin && <option value='newEvent'>New event ...</option>}
               {teamsMonth.map(({ eventName, id }) => (
                 <option key={id} value={eventName}>
                   {eventName}
@@ -214,16 +249,7 @@ function App() {
             </select>
           )}
         </div>
-        {eventSelected !== SERVICE && isAdmin && (
-          <button
-            className='btn btn-outline-secondary'
-            type='button'
-            id='button-addon1'
-            onClick={() => setShowNewEvent(!showNewEvent)}
-          >
-            Add a new event
-          </button>
-        )}
+        <ShowEdit isAdmin={isAdmin} handleEdit={handleEdit} />
         {eventSelected !== SERVICE && isAdmin && showNewEvent && (
           <EditEvent
             teamsMonth={teamsMonth}
@@ -237,70 +263,74 @@ function App() {
             callToast={callToast}
           />
         )}
-        <div className='card my-5'>
-          <div className='card-header bg-secondary text-white'>
-            {isAdmin ? ' Modify team' : 'Team'}
+
+        {((showEditTeam && isAdmin) || !isAdmin) && (
+          <div className='card my-5'>
+            <div className='card-header bg-secondary text-white'>
+              {isAdmin ? ' Modify team' : 'Team'}
+            </div>
+            <table className='table table-hover'>
+              <thead>
+                <tr>
+                  <th style={{ width: '6%' }}>Sunday</th>
+                  <th style={{ width: '10%' }}>Md</th>
+                  <th style={{ width: '10%' }}>Keyboard</th>
+                  <th style={{ width: '10%' }}>Bass</th>
+                  <th style={{ width: '10%' }}>Drum</th>
+                  <th style={{ width: '10%' }}>Guitar</th>
+                  {isAdmin && (
+                    <>
+                      <th style={{ width: '5%' }}>Save</th>
+                      <th style={{ width: '5%' }}>Delete</th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {sundaysInMonth.map((sunday, idx) => {
+                  const preSelected = getSelected(teamsMonth, String(sunday));
+                  return (
+                    <tr key={`${sunday}-${idx}`} className=''>
+                      {sunday && (
+                        <th scope='row align-middle'>{`${sunday} ${MONTH[month]}`}</th>
+                      )}
+                      {isAdmin ? (
+                        <EditTeams
+                          md={md}
+                          keyboard={keyboard}
+                          bass={bass}
+                          guitar={guitar}
+                          drum={drum}
+                          teamsMonth={teamsMonth}
+                          callToast={callToast}
+                          year={year}
+                          month={month}
+                          city={citySelected}
+                          event={eventSelected}
+                          day={String(sunday)}
+                          preSelected={preSelected}
+                          sundaysInMonth={sundaysInMonth}
+                          idx={idx}
+                          modify
+                        />
+                      ) : (
+                        <Teams
+                          md={md}
+                          keyboard={keyboard}
+                          bass={bass}
+                          guitar={guitar}
+                          drum={drum}
+                          preSelected={preSelected}
+                        />
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-          <table className='table table-hover'>
-            <thead>
-              <tr>
-                <th style={{ width: '6%' }}>Sunday</th>
-                <th style={{ width: '10%' }}>Md</th>
-                <th style={{ width: '10%' }}>Keyboard</th>
-                <th style={{ width: '10%' }}>Bass</th>
-                <th style={{ width: '10%' }}>Drum</th>
-                <th style={{ width: '10%' }}>Guitar</th>
-                {isAdmin && (
-                  <>
-                    <th style={{ width: '5%' }}>Save</th>
-                    <th style={{ width: '5%' }}>Delete</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {sundaysInMonth.map((sunday, idx) => {
-                const preSelected = getSelected(teamsMonth, String(sunday));
-                return (
-                  <tr key={`${sunday}-${idx}`} className=''>
-                    {sunday && (
-                      <th scope='row align-middle'>{`${sunday} ${MONTH[month]}`}</th>
-                    )}
-                    {isAdmin ? (
-                      <EditTeams
-                        md={md}
-                        keyboard={keyboard}
-                        bass={bass}
-                        guitar={guitar}
-                        drum={drum}
-                        teamsMonth={teamsMonth}
-                        callToast={callToast}
-                        year={year}
-                        month={month}
-                        city={citySelected}
-                        event={eventSelected}
-                        day={String(sunday)}
-                        preSelected={preSelected}
-                        sundaysInMonth={sundaysInMonth}
-                        idx={idx}
-                        modify
-                      />
-                    ) : (
-                      <Teams
-                        md={md}
-                        keyboard={keyboard}
-                        bass={bass}
-                        guitar={guitar}
-                        drum={drum}
-                        preSelected={preSelected}
-                      />
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        )}
+
         {teamsMonth && !isAdmin && (
           <>
             <p className='fs-1 text-center'>SetLists</p>
@@ -315,7 +345,7 @@ function App() {
             />
           </>
         )}
-        {teamsMonth && isAdmin && (
+        {showEditlist && teamsMonth && isAdmin && (
           <EditList
             teamsMonth={teamsMonth}
             callToast={callToast}
@@ -327,7 +357,8 @@ function App() {
             eventName={eventNameSelected}
           />
         )}
-        {isAdmin && (
+
+        {(isAdmin && showEditMember) && (
           <EditUser
             callToast={callToast}
             users={dataUsers.users}
@@ -357,7 +388,7 @@ function App() {
                 data-bs-dismiss='toast'
                 aria-label='Close'
                 onClick={() => setDisplayToast('hide')}
-              ></button>
+              />
             </div>
             <div className='toast-body'>{message}</div>
           </div>

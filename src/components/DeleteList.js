@@ -69,49 +69,45 @@ export const DeleteList = ({
   }
 
   return (
-    <div className='d-flex justify-content-center'>
-      <div className=' p-2'>
-        <div className='card' style={{ width: '24rem' }}>
-          <div className='card-header bg-secondary text-white'>Delete List</div>
-          <div className='card-body'>
-            <select
-              className='form-select py-0 my-2'
-              aria-label='Default select example'
-              onChange={(e) => setDay(e.target.value)}
-            >
-              {sundaysInMonth.map((sunday, idx) => {
-                return (
-                  <option
-                    key={idx}
-                    value={sunday}
-                  >{`${sunday} ${MONTH[month]}`}</option>
-                );
-              })}
-            </select>
-            <ul className='list-group list-group-flush'>
-              {data.list
-                .filter(({ day }) => day === daySelected)
-                .map(({ title, id }) => {
-                  return (
-                    <li
-                      key={id}
-                      className='list-group-item d-flex justify-content-between'
-                    >
-                      {title}
-                      <button
-                        className='btn btn-outline-secondary'
-                        type='button'
-                        id='button-addon1'
-                        onClick={() => deleteTitle({ id })}
-                      >
-                        <TrashIcon />
-                      </button>
-                    </li>
-                  );
-                })}
-            </ul>
-          </div>
-        </div>
+    <div className='card d-flex justify-content-center'>
+      <div className='card-header bg-secondary text-white'>Delete List</div>
+      <div className='card-body'>
+        <select
+          className='form-select py-0 my-2'
+          aria-label='Default select example'
+          onChange={(e) => setDay(e.target.value)}
+        >
+          {sundaysInMonth.map((sunday, idx) => {
+            return (
+              <option
+                key={idx}
+                value={sunday}
+              >{`${sunday} ${MONTH[month]}`}</option>
+            );
+          })}
+        </select>
+        <ul className='list-group list-group-flush'>
+          {data.list
+            .filter(({ day }) => day === daySelected)
+            .map(({ title, id }) => {
+              return (
+                <li
+                  key={id}
+                  className='list-group-item d-flex justify-content-between'
+                >
+                  {title}
+                  <button
+                    className='btn btn-outline-secondary'
+                    type='button'
+                    id='button-addon1'
+                    onClick={() => deleteTitle({ id })}
+                  >
+                    <TrashIcon />
+                  </button>
+                </li>
+              );
+            })}
+        </ul>
       </div>
     </div>
   );
